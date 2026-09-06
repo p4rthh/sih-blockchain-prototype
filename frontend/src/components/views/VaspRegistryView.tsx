@@ -55,7 +55,7 @@ export const VaspRegistryView: React.FC<VaspRegistryViewProps> = ({ vasps, onSel
             <button
               key={c}
               onClick={() => setSelectedChain(c)}
-              className={`px-3 py-1 rounded font-mono text-xs transition-colors uppercase ${
+              className={`px-3 py-1 rounded font-mono text-xs transition-colors uppercase active:translate-y-px ${
                 selectedChain === c
                   ? 'bg-[#1b2a41] text-[#fff8f0] font-semibold'
                   : 'bg-[#eae5db] text-[#575249] hover:bg-[#dfd8cb] border border-[#d6cfc2]'
@@ -133,7 +133,7 @@ export const VaspRegistryView: React.FC<VaspRegistryViewProps> = ({ vasps, onSel
                     <span className="truncate mr-2">{wallet}</span>
                     <button
                       onClick={() => handleCopy(wallet)}
-                      className="text-[#797368] hover:text-[#1b2a41] shrink-0 text-xs font-sans px-1.5 py-0.5 rounded hover:bg-[#dfd8cb] transition-colors"
+                      className="text-[#797368] hover:text-[#1b2a41] active:translate-y-px shrink-0 text-xs font-sans px-1.5 py-0.5 rounded hover:bg-[#dfd8cb] transition-colors"
                     >
                       {copiedAddress === wallet ? 'Copied!' : 'Copy'}
                     </button>

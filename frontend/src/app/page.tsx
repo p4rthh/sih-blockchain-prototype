@@ -173,14 +173,14 @@ export default function Home() {
               <button
                 disabled={freezeStatus === 'dispatching'}
                 onClick={() => setShowFreezeModal(false)}
-                className="px-4 py-2 rounded text-xs font-medium text-[#575249] hover:bg-[#eae5db] transition-colors"
+                className="px-4 py-2 rounded text-xs font-medium text-[#575249] hover:bg-[#eae5db] active:translate-y-px transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Cancel
               </button>
               <button
                 disabled={freezeStatus === 'dispatching'}
                 onClick={confirmEmergencyFreeze}
-                className="px-5 py-2 rounded bg-[#9e2a2b] hover:bg-[#832122] text-[#fff8f0] text-xs font-bold font-mono uppercase tracking-wide transition-colors flex items-center gap-1.5 shadow-xs"
+                className="px-5 py-2 rounded bg-[#9e2a2b] hover:bg-[#832122] active:translate-y-px text-[#fff8f0] text-xs font-bold font-mono uppercase tracking-wide transition-colors flex items-center gap-1.5 shadow-xs disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {freezeStatus === 'dispatching' ? (
                   <span>Signing ECDSA Token...</span>

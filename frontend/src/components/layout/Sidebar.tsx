@@ -26,8 +26,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
         {/* Command Station Snippet */}
         <div className="p-3 bg-[#f3efe6] border border-[#d6cfc2] rounded-lg shadow-xs">
           <div className="flex items-center space-x-2.5">
-            <div className="w-8 h-8 rounded bg-[#ecd6b0] border border-[#dfc599] flex items-center justify-center text-[#8d4f12] shrink-0 font-serif font-bold text-sm">
-              🇮🇳
+            <div className="w-8 h-8 rounded bg-[#ecd6b0] border border-[#dfc599] flex items-center justify-center text-[#8d4f12] shrink-0">
+              <svg className="w-4 h-4 text-[#8d4f12]" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" strokeWidth="1.5" />
+                <circle cx="12" cy="12" r="2.2" fill="currentColor" />
+                <path d="M12 3v4 M12 17v4 M3 12h4 M17 12h4 M5.6 5.6l2.8 2.8 M15.6 15.6l2.8 2.8 M5.6 18.4l2.8-2.8 M15.6 8.4l2.8-2.8" stroke="currentColor" strokeWidth="1.2" />
+              </svg>
             </div>
             <div className="overflow-hidden">
               <div className="text-xs font-bold text-[#1b2a41] leading-tight truncate">Cyber Command Mumbai</div>
@@ -39,7 +43,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         {/* Action Button: Create New Trace */}
         <button
           onClick={onNewDossier}
-          className="w-full bg-[#1b2a41] hover:bg-[#111e30] text-[#fff8f0] font-semibold text-xs py-2.5 px-3 rounded flex items-center justify-center space-x-1.5 shadow-xs transition-colors tracking-wide"
+          className="w-full bg-[#1b2a41] hover:bg-[#111e30] active:translate-y-px text-[#fff8f0] font-semibold text-xs py-2.5 px-3 rounded flex items-center justify-center space-x-1.5 shadow-xs transition-colors tracking-wide"
         >
           <span className="material-symbols-outlined text-[16px]">add_moderator</span>
           <span>NEW TRACE INQUIRY</span>
@@ -56,7 +60,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               <button
                 key={item.id}
                 onClick={() => setActiveTab(item.id)}
-                className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded text-xs font-medium transition-colors text-left ${
+                className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded text-xs font-medium transition-colors text-left active:translate-y-px ${
                   isActive
                     ? 'bg-[#ded8cd] text-[#1b2a41] font-bold border-l-4 border-[#1b2a41] shadow-xs'
                     : 'text-[#575249] hover:text-[#1b2a41] hover:bg-[#e4dfd3]'

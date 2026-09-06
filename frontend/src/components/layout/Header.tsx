@@ -54,7 +54,7 @@ export const Header: React.FC<HeaderProps> = ({
           </span>
           <input
             type="text"
-            className="bg-[#ece7dc] border border-[#d6cfc2] text-[#21201d] font-mono text-xs pl-8 pr-3 py-1.5 rounded w-72 placeholder:text-[#888173] focus:outline-none focus:border-[#1b2a41] focus:bg-[#f3efe6] transition-all shadow-none"
+            className="bg-[#ece7dc] border border-[#d6cfc2] text-[#21201d] font-mono text-xs pl-8 pr-3 py-1.5 rounded w-72 placeholder:text-[#888173] focus:outline-none focus:border-[#1b2a41] focus:bg-[#f3efe6] transition-colors duration-150 shadow-none"
             placeholder="Search address, tx hash, or FIR..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -64,7 +64,7 @@ export const Header: React.FC<HeaderProps> = ({
 
         <button
           onClick={() => setActiveTab('intake')}
-          className="hidden sm:flex items-center space-x-1.5 px-3 py-1.5 bg-[#eae5db] border border-[#d6cfc2] rounded text-xs font-semibold text-[#21201d] hover:bg-[#dfd8cb] transition-colors"
+          className="hidden sm:flex items-center space-x-1.5 px-3 py-1.5 bg-[#eae5db] border border-[#d6cfc2] rounded text-xs font-semibold text-[#21201d] hover:bg-[#dfd8cb] active:translate-y-px transition-colors"
         >
           <span className="material-symbols-outlined text-[15px] text-[#575249]">swap_horiz</span>
           <span>SWITCH CASE</span>
@@ -72,7 +72,7 @@ export const Header: React.FC<HeaderProps> = ({
 
         <button
           onClick={onEmergencyFreeze}
-          className="flex items-center space-x-1.5 px-3.5 py-1.5 bg-[#9e2a2b] text-[#fff8f0] rounded text-xs font-semibold hover:bg-[#832122] transition-colors shadow-xs active:scale-98"
+          className="flex items-center space-x-1.5 px-3.5 py-1.5 bg-[#9e2a2b] text-[#fff8f0] rounded text-xs font-semibold hover:bg-[#832122] active:translate-y-px transition-colors shadow-xs"
         >
           <span className="material-symbols-outlined text-[15px]">gavel</span>
           <span className="tracking-wide uppercase">EMERGENCY FREEZE</span>

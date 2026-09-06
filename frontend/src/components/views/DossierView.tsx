@@ -389,7 +389,7 @@ export const DossierView: React.FC<DossierViewProps> = ({ dossier, onDispatchFre
           <div className="space-y-2 pt-1">
             <button
               onClick={handleDispatch}
-              className="w-full bg-[#9e2a2b] hover:bg-[#832122] text-[#fff8f0] font-bold text-xs py-2.5 px-3 rounded-lg transition-colors flex items-center justify-center space-x-1.5 shadow-xs uppercase tracking-wide font-mono active:scale-98"
+              className="w-full bg-[#9e2a2b] hover:bg-[#832122] active:translate-y-px text-[#fff8f0] font-bold text-xs py-2.5 px-3 rounded-lg transition-colors flex items-center justify-center space-x-1.5 shadow-xs uppercase tracking-wide font-mono"
             >
               <span className="material-symbols-outlined text-base">lock_clock</span>
               <span>DISPATCH FREEZE REQUEST (SEC 94)</span>
@@ -397,7 +397,7 @@ export const DossierView: React.FC<DossierViewProps> = ({ dossier, onDispatchFre
 
             <button
               onClick={() => window.print()}
-              className="w-full bg-[#f4f0e6] hover:bg-[#eae5db] border border-[#d6cfc2] text-[#1b2a41] font-semibold text-xs py-2 px-3 rounded-lg transition-colors flex items-center justify-center space-x-1.5 shadow-xs font-mono"
+              className="w-full bg-[#f4f0e6] hover:bg-[#eae5db] active:translate-y-px border border-[#d6cfc2] text-[#1b2a41] font-semibold text-xs py-2 px-3 rounded-lg transition-colors flex items-center justify-center space-x-1.5 shadow-xs font-mono"
             >
               <span className="material-symbols-outlined text-sm text-[#2c5e43]">print</span>
               <span>Print Certified Evidence Packet</span>

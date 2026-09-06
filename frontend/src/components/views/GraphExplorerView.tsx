@@ -104,7 +104,7 @@ export const GraphExplorerView: React.FC<GraphExplorerViewProps> = ({
             </div>
             <div className="w-full bg-[#dfd8cb] h-2.5 rounded-full overflow-hidden">
               <div
-                className="bg-[#9e2a2b] h-full rounded-full transition-all duration-700"
+                className="bg-[#9e2a2b] h-full rounded-full transition-[width] duration-700 ease-out"
                 style={{ width: `${traceData.riskScore}%` }}
               ></div>
             </div>
@@ -166,7 +166,7 @@ export const GraphExplorerView: React.FC<GraphExplorerViewProps> = ({
         <div className="p-4 border-t border-[#d6cfc2] space-y-2 bg-[#ece7dc]">
           <button
             onClick={onGenerateDossier}
-            className="w-full bg-[#1b2a41] hover:bg-[#111e30] text-[#fff8f0] font-semibold text-xs py-3 px-4 rounded-lg transition-colors flex items-center justify-center space-x-2 shadow-xs uppercase tracking-wider font-mono"
+            className="w-full bg-[#1b2a41] hover:bg-[#111e30] active:translate-y-px text-[#fff8f0] font-semibold text-xs py-3 px-4 rounded-lg transition-colors flex items-center justify-center space-x-2 shadow-xs uppercase tracking-wider font-mono"
           >
             <span className="material-symbols-outlined text-base">gavel</span>
             <span>Generate Court Evidence Dossier</span>
@@ -174,7 +174,7 @@ export const GraphExplorerView: React.FC<GraphExplorerViewProps> = ({
 
           <button
             onClick={onEmergencyFreeze}
-            className="w-full bg-[#9e2a2b] hover:bg-[#832122] text-[#fff8f0] font-semibold text-xs py-2 px-3 rounded-lg transition-colors flex items-center justify-center space-x-1.5 shadow-xs uppercase tracking-wide font-mono"
+            className="w-full bg-[#9e2a2b] hover:bg-[#832122] active:translate-y-px text-[#fff8f0] font-semibold text-xs py-2 px-3 rounded-lg transition-colors flex items-center justify-center space-x-1.5 shadow-xs uppercase tracking-wide font-mono"
           >
             <span className="material-symbols-outlined text-[15px]">lock_reset</span>
             <span>Issue Sec 94 Freezing Notice</span>

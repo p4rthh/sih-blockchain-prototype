@@ -60,12 +60,12 @@ export const CommandCenterView: React.FC<CommandCenterViewProps> = ({
               value={quickInput}
               onChange={(e) => setQuickInput(e.target.value)}
               placeholder="Paste any suspect wallet (0x..., bc1q..., TR7N...) to unleash automated multi-hop trace..."
-              className="w-full bg-[#ece7dc] border border-[#d6cfc2] pl-10 pr-4 py-2.5 rounded-lg font-mono text-xs text-[#21201d] placeholder:text-[#888173] focus:outline-none focus:border-[#1b2a41] focus:bg-[#f3efe6] transition-all"
+              className="w-full bg-[#ece7dc] border border-[#d6cfc2] pl-10 pr-4 py-2.5 rounded-lg font-mono text-xs text-[#21201d] placeholder:text-[#888173] focus:outline-none focus:border-[#1b2a41] focus:bg-[#f3efe6] transition-colors duration-150"
             />
           </div>
           <button
             type="submit"
-            className="w-full sm:w-auto px-6 py-2.5 bg-[#1b2a41] hover:bg-[#111e30] text-[#fff8f0] font-semibold text-xs rounded-lg transition-colors flex items-center justify-center space-x-2 shadow-xs shrink-0 tracking-wider uppercase font-mono"
+            className="w-full sm:w-auto px-6 py-2.5 bg-[#1b2a41] hover:bg-[#111e30] active:translate-y-px text-[#fff8f0] font-semibold text-xs rounded-lg transition-colors flex items-center justify-center space-x-2 shadow-xs shrink-0 tracking-wider uppercase font-mono"
           >
             <span className="material-symbols-outlined text-[16px]">travel_explore</span>
             <span>Execute Trace (90s)</span>
@@ -198,7 +198,7 @@ export const CommandCenterView: React.FC<CommandCenterViewProps> = ({
                   <td className="py-3 px-3.5 text-right">
                     <button
                       onClick={() => onSelectComplaint(c)}
-                      className="px-3 py-1.5 bg-[#1b2a41] text-[#fff8f0] rounded text-xs font-medium hover:bg-[#111e30] transition-colors shadow-xs inline-flex items-center gap-1"
+                      className="px-3 py-1.5 bg-[#1b2a41] text-[#fff8f0] rounded text-xs font-medium hover:bg-[#111e30] active:translate-y-px transition-colors shadow-xs inline-flex items-center gap-1"
                     >
                       <span>Open Trace</span>
                       <span className="material-symbols-outlined text-[14px]">arrow_forward</span>
