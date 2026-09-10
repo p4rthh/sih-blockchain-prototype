@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { CourtDossier } from '../../lib/types/forensics';
+import { apiClient } from '../../lib/api/client';
 
 interface DossierViewProps {
   dossier: CourtDossier;
@@ -11,11 +12,40 @@ interface DossierViewProps {
 export const DossierView: React.FC<DossierViewProps> = ({ dossier, onDispatchFreeze }) => {
   const [dispatchSuccess, setDispatchSuccess] = useState(false);
   const [freezeAck, setFreezeAck] = useState<string | null>(null);
+  const [isDownloading, setIsDownloading] = useState(false);
+
+  const assignedVasp = dossier?.assignedVASP || (dossier as unknown as { assignedVasp?: typeof dossier.assignedVASP })?.assignedVasp || {
+    id: 'vasp-001',
+    name: 'WazirX',
+    legalEntity: 'Zanmai Labs Private Limited',
+    jurisdiction: 'India (Registered FIU Entity)',
+    fiuStatus: 'REGISTERED' as const,
+    fiuRegNumber: 'FIU-IND-2023-VASP-001',
+    nodalOfficer: 'Shri Arvind Singhal',
+    nodalEmail: 'nodal-police@wazirx.com',
+    emergencyPhone: '+91-22-4893-1100',
+    freezeSlaHours: 2,
+    chains: ['ethereum' as const, 'bsc' as const],
+    knownHotWallets: [],
+    depositCount24h: 4820,
+    compliancePortalUrl: 'https://compliance.wazirx.com/lea/portal',
+  };
 
   const handleDispatch = () => {
     onDispatchFreeze();
     setDispatchSuccess(true);
     setFreezeAck(`SAHYOG-FRZ-${Math.floor(100000 + Math.random() * 900000)}`);
+  };
+
+  const handleDownloadPdf = async () => {
+    setIsDownloading(true);
+    try {
+      const traceId = dossier.traceData?.traceId;
+      const vaspId = assignedVasp?.id;
+      await apiClient.downloadPdf(dossier.caseRef, traceId, undefined, vaspId);
+    } finally {
+      setTimeout(() => setIsDownloading(false), 800);
+    }
   };
 
   return (
@@ -38,11 +68,23 @@ export const DossierView: React.FC<DossierViewProps> = ({ dossier, onDispatchFre
             </div>
           </div>
 
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-2.5">
             <div className="bg-[#f4f0e6] border border-[#d5cec1] rounded p-1.5 px-3 shadow-xs flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-[#2c5e43]"></span>
               <span className="font-mono text-[11px] text-[#3c3933] font-bold">SEC-65B SEAL CERTIFIED</span>
             </div>
+
+            <button
+              onClick={handleDownloadPdf}
+              disabled={isDownloading}
+              className="bg-[#1b2a41] hover:bg-[#121c2b] active:translate-y-px text-[#fff8f0] font-mono text-xs font-semibold py-1.5 px-3 rounded shadow-xs flex items-center gap-1.5 transition-colors disabled:opacity-50"
+              title="Download Section 63 BSA court-admissible PDF"
+            >
+              <span className="material-symbols-outlined text-[16px] text-[#c5d8ba]">
+                {isDownloading ? 'hourglass_top' : 'download'}
+              </span>
+              <span>{isDownloading ? 'Compiling Sealed PDF...' : 'Download Admissible PDF'}</span>
+            </button>
           </div>
         </div>
 
@@ -321,7 +363,7 @@ export const DossierView: React.FC<DossierViewProps> = ({ dossier, onDispatchFre
             <div className="flex items-center justify-between">
               <div className="text-xs font-bold text-[#21201d] flex items-center gap-1.5">
                 <span className="material-symbols-outlined text-[#1b2a41] text-[18px]">account_balance</span>
-                <span>{dossier.assignedVASP.name} / {dossier.assignedVASP.legalEntity}</span>
+                <span>{assignedVasp.name} / {assignedVasp.legalEntity}</span>
               </div>
               <span className="font-mono text-[10px] px-1.5 py-0.5 bg-[#e2ebd9] text-[#1e3b2b] border border-[#c5d8ba] rounded font-bold">
                 FIU-REG
@@ -331,11 +373,11 @@ export const DossierView: React.FC<DossierViewProps> = ({ dossier, onDispatchFre
             <div className="space-y-1.5 text-[11px] text-[#575249] border-t border-[#dfd8cb] pt-2 font-sans">
               <div className="flex justify-between">
                 <span className="text-[#797368]">Nodal Email:</span>
-                <span className="text-[#21201d] font-mono">{dossier.assignedVASP.nodalEmail}</span>
+                <span className="text-[#21201d] font-mono">{assignedVasp.nodalEmail}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-[#797368]">Emergency:</span>
-                <span className="text-[#21201d] font-mono">{dossier.assignedVASP.emergencyPhone}</span>
+                <span className="text-[#21201d] font-mono">{assignedVasp.emergencyPhone}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-[#797368]">Freeze SLA:</span>
@@ -393,6 +435,17 @@ export const DossierView: React.FC<DossierViewProps> = ({ dossier, onDispatchFre
             >
               <span className="material-symbols-outlined text-base">lock_clock</span>
               <span>DISPATCH FREEZE REQUEST (SEC 94)</span>
+            </button>
+
+            <button
+              onClick={handleDownloadPdf}
+              disabled={isDownloading}
+              className="w-full bg-[#1b2a41] hover:bg-[#121c2b] active:translate-y-px text-[#fff8f0] font-semibold text-xs py-2 px-3 rounded-lg transition-colors flex items-center justify-center space-x-1.5 shadow-xs font-mono disabled:opacity-50"
+            >
+              <span className="material-symbols-outlined text-sm text-[#c5d8ba]">
+                {isDownloading ? 'hourglass_top' : 'download'}
+              </span>
+              <span>{isDownloading ? 'Compiling Sealed PDF...' : 'Download Court-Certified PDF'}</span>
             </button>
 
             <button

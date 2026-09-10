@@ -49,6 +49,19 @@ export default function Home() {
     setActiveTab('explorer');
   };
 
+  const handleGenerateDossier = async () => {
+    if (traceData) {
+      const freshDossier = await apiClient.compileDossier(
+        traceData.traceId,
+        `NCRP-${traceData.traceId.slice(-6).toUpperCase()}`
+      );
+      if (freshDossier) {
+        setDossier(freshDossier);
+      }
+    }
+    setActiveTab('dossier');
+  };
+
   const handleEmergencyFreezeTrigger = () => {
     setShowFreezeModal(true);
     setFreezeStatus('idle');
@@ -65,7 +78,7 @@ export default function Home() {
   };
 
   return (
-    <div className="bg-[#ede8de] text-[#21201d] min-h-screen flex flex-col font-sans selection:bg-[#d6cfc2]">
+    <div className="bg-[#ede8de] text-[#21201d] h-screen w-screen overflow-hidden flex flex-col font-sans selection:bg-[#d6cfc2]">
       {/* Persistent Top Navigation Bar */}
       <Header
         setActiveTab={(t) => setActiveTab(t as TabType)}
@@ -76,7 +89,7 @@ export default function Home() {
       />
 
       {/* Main Structural Chassis */}
-      <div className="flex flex-1 pt-14">
+      <div className="flex flex-1 pt-14 h-full overflow-hidden">
         {/* Persistent Left Sidebar */}
         <Sidebar
           activeTab={activeTab}
@@ -85,7 +98,13 @@ export default function Home() {
         />
 
         {/* Viewport Content Area (Offset by Sidebar width) */}
-        <main className="flex-1 ml-60 min-h-[calc(100vh-3.5rem)] flex flex-col overflow-hidden bg-[#e9e4d9]">
+        <main
+          className={`flex-1 ml-60 h-full flex flex-col bg-[#e9e4d9] ${
+            activeTab === 'explorer' || activeTab === 'dossier'
+              ? 'overflow-hidden'
+              : 'overflow-y-auto custom-scrollbar'
+          }`}
+        >
           {activeTab === 'intake' && (
             <CommandCenterView
               complaints={complaints}
@@ -97,7 +116,7 @@ export default function Home() {
           {activeTab === 'explorer' && traceData && (
             <GraphExplorerView
               traceData={traceData}
-              onGenerateDossier={() => setActiveTab('dossier')}
+              onGenerateDossier={handleGenerateDossier}
               onEmergencyFreeze={handleEmergencyFreezeTrigger}
             />
           )}
@@ -118,7 +137,8 @@ export default function Home() {
             <DossierView
               dossier={dossier}
               onDispatchFreeze={() => {
-                apiClient.dispatchFreeze(dossier.caseRef, dossier.assignedVASP.id);
+                const vaspId = dossier.assignedVASP?.id || (dossier as unknown as { assignedVasp?: { id?: string } })?.assignedVasp?.id || 'vasp-001';
+                apiClient.dispatchFreeze(dossier.caseRef, vaspId);
               }}
             />
           )}

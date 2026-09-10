@@ -1,0 +1,85 @@
+from typing import List
+from app.models.schema import Complaint
+
+INITIAL_COMPLAINTS: List[Complaint] = [
+    Complaint(
+        id="case-10928",
+        acknowledgement_no="NCRP-2026-DEL-89412",
+        fir_number="FIR-412/2026",
+        police_station="Special Cell Cyber Crime PS, Mandir Marg",
+        victim_name="Sanjay K. Malhotra (South Ext. New Delhi)",
+        suspect_address="0x71C...89A4",
+        chain="ethereum",
+        amount="12.50 ETH (₹31,25,000)",
+        reported_at="2026-09-02 09:14 IST",
+        status="ATTRIBUTED",
+        target_vasp="WazirX (Zanmai Labs)",
+        risk_score=0.92,
+        io_name="Inspector R. K. Sharma",
+        zone="Southern Cyber Range, New Delhi"
+    ),
+    Complaint(
+        id="case-10929",
+        acknowledgement_no="NCRP-2026-MUM-77102",
+        fir_number="FIR-188/2026",
+        police_station="Cyber Police Station, Bandra Kurla Complex (BKC)",
+        victim_name="Dr. Anita Desai (Bandra West, Mumbai)",
+        suspect_address="0x34A...B892",
+        chain="bsc",
+        amount="48,500 USDT (₹40,50,000)",
+        reported_at="2026-09-02 11:32 IST",
+        status="TRACING",
+        target_vasp="Binance India",
+        risk_score=0.88,
+        io_name="ACP M. V. Kadam",
+        zone="West Zone Cyber Unit, Maharashtra"
+    ),
+    Complaint(
+        id="case-10930",
+        acknowledgement_no="NCRP-2026-BLR-55410",
+        fir_number="FIR-092/2026",
+        police_station="Cyber Crime Police Station, CID Headquarters, Bengaluru",
+        victim_name="TechSecure Ventures Private Limited",
+        suspect_address="0x91F...22C1",
+        chain="ethereum",
+        amount="32.00 ETH (₹80,00,000)",
+        reported_at="2026-09-01 16:45 IST",
+        status="FROZEN",
+        target_vasp="CoinDCX (Neblio)",
+        risk_score=0.96,
+        io_name="DSP Raghavendra Bhat",
+        zone="CID Karnataka Cyber Range"
+    ),
+    Complaint(
+        id="case-10931",
+        acknowledgement_no="NCRP-2026-HYD-33019",
+        fir_number="FIR-305/2026",
+        police_station="Cyberabad Cyber Crimes Unit, Gachibowli",
+        victim_name="N. Venkat Reddy (Hitec City, Hyderabad)",
+        suspect_address="0xDEF...9901",
+        chain="tron",
+        amount="95,000 TRX (₹11,40,000)",
+        reported_at="2026-09-03 08:20 IST",
+        status="QUEUED",
+        target_vasp=None,
+        risk_score=0.74,
+        io_name="Inspector S. Srinivas Rao",
+        zone="Cyberabad Metropolitan Unit"
+    ),
+    Complaint(
+        id="case-10932",
+        acknowledgement_no="NCRP-2026-KOL-11944",
+        fir_number="FIR-120/2026",
+        police_station="Lalbazar Cyber PS, Kolkata",
+        victim_name="Debabrata Ghosh (Salt Lake, Kolkata)",
+        suspect_address="0x88A...11EE",
+        chain="ethereum",
+        amount="8.20 ETH (₹20,50,000)",
+        reported_at="2026-09-03 14:10 IST",
+        status="QUEUED",
+        target_vasp=None,
+        risk_score=0.69,
+        io_name="Sub-Inspector Anupam Sen",
+        zone="Eastern Cyber Command"
+    )
+]

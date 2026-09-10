@@ -8,7 +8,21 @@ export type NodeType =
   | 'BRIDGE_MINT'
   | 'EXCHANGE_DEPOSIT'
   | 'EXCHANGE_HOT'
-  | 'MIXER';
+  | 'MIXER'
+  | 'VERIFIED_ENTITY'
+  | 'SMART_CONTRACT'
+  | 'BENIGN_PUBLIC';
+
+export interface FlowTransaction {
+  hash: string;
+  from?: string;
+  to?: string;
+  valueStr: string;
+  fee: string;
+  timestamp: string;
+  chain: ChainType;
+  riskLevel?: 'SAFE' | 'CLEAN' | 'BALANCED' | 'SUSPICIOUS' | 'CRITICAL';
+}
 
 export interface GraphNode {
   id: string;
@@ -23,6 +37,8 @@ export interface GraphNode {
   clusterId?: string;
   txCount: number;
   isTerminal?: boolean;
+  transactions?: FlowTransaction[];
+  terminalStatus?: string;
 }
 
 export interface GraphLink {
@@ -36,6 +52,17 @@ export interface GraphLink {
   chain: ChainType;
   isBridge?: boolean;
   heuristic?: string;
+  txCount?: number;
+  individualTxs?: FlowTransaction[];
+}
+
+export interface HeuristicFinding {
+  code: string;
+  name: string;
+  status: string;
+  badge: string;
+  isTriggered: boolean;
+  summary: string;
 }
 
 export interface TraceGraphData {
@@ -50,6 +77,9 @@ export interface TraceGraphData {
   typology: string;
   nodes: GraphNode[];
   links: GraphLink[];
+  heuristics?: HeuristicFinding[];
+  trailVerdict?: string;
+  trailStatus?: string;
 }
 
 export interface Complaint {

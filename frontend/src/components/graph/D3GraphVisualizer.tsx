@@ -2,12 +2,14 @@
 
 import React, { useEffect, useRef } from 'react';
 import * as d3 from 'd3';
-import { GraphNode, TraceGraphData } from '../../lib/types/forensics';
+import { FlowTransaction, GraphLink, GraphNode, TraceGraphData } from '../../lib/types/forensics';
 
 interface D3GraphVisualizerProps {
   data: TraceGraphData;
   selectedNode: GraphNode | null;
   onSelectNode: (node: GraphNode) => void;
+  selectedLink?: GraphLink | null;
+  onSelectLink?: (link: GraphLink) => void;
 }
 
 interface D3Node extends d3.SimulationNodeDatum, GraphNode {}
@@ -19,12 +21,16 @@ interface D3Link extends d3.SimulationLinkDatum<D3Node> {
   fee: string;
   isBridge?: boolean;
   heuristic?: string;
+  txCount?: number;
+  individualTxs?: FlowTransaction[];
 }
 
 export const D3GraphVisualizer: React.FC<D3GraphVisualizerProps> = ({
   data,
   selectedNode,
   onSelectNode,
+  selectedLink,
+  onSelectLink,
 }) => {
   const svgRef = useRef<SVGSVGElement | null>(null);
 
@@ -74,6 +80,20 @@ export const D3GraphVisualizer: React.FC<D3GraphVisualizerProps> = ({
       .attr('d', 'M0,-5L10,0L0,5')
       .attr('fill', '#9e2a2b');
 
+    // Selected arrow marker
+    defs
+      .append('marker')
+      .attr('id', 'arrow-selected')
+      .attr('viewBox', '0 -5 10 10')
+      .attr('refX', 28)
+      .attr('refY', 0)
+      .attr('markerWidth', 8)
+      .attr('markerHeight', 8)
+      .attr('orient', 'auto')
+      .append('path')
+      .attr('d', 'M0,-5L10,0L0,5')
+      .attr('fill', '#1b2a41');
+
     // Zoom container
     const g = svg.append('g').attr('class', 'graph-viewport');
 
@@ -100,6 +120,24 @@ export const D3GraphVisualizer: React.FC<D3GraphVisualizerProps> = ({
       target: d.target,
     }));
 
+    const getEntityId = (item: unknown): string => {
+      if (typeof item === 'object' && item !== null) {
+        const obj = item as { id?: string; address?: string };
+        return obj.id || obj.address || '';
+      }
+      return String(item ?? '');
+    };
+
+    const isLinkSelected = (d: D3Link): boolean => {
+      if (!selectedLink) return false;
+      if (selectedLink.txHash && d.txHash && selectedLink.txHash === d.txHash) return true;
+      const selSrc = getEntityId(selectedLink.source);
+      const selTgt = getEntityId(selectedLink.target);
+      const dSrc = getEntityId(d.source);
+      const dTgt = getEntityId(d.target);
+      return selSrc === dSrc && selTgt === dTgt;
+    };
+
     // Simulation setup
     const simulation = d3
       .forceSimulation<D3Node>(nodes)
@@ -108,11 +146,11 @@ export const D3GraphVisualizer: React.FC<D3GraphVisualizerProps> = ({
         d3
           .forceLink<D3Node, D3Link>(links)
           .id((d) => d.id)
-          .distance(160)
+          .distance(190)
       )
-      .force('charge', d3.forceManyBody().strength(-450))
+      .force('charge', d3.forceManyBody().strength(-550))
       .force('center', d3.forceCenter(width / 2, height / 2))
-      .force('collision', d3.forceCollide().radius(45));
+      .force('collision', d3.forceCollide().radius(50));
 
     // Draw Links
     const link = g
@@ -121,23 +159,76 @@ export const D3GraphVisualizer: React.FC<D3GraphVisualizerProps> = ({
       .selectAll('line')
       .data(links)
       .join('line')
-      .attr('stroke', (d) => (d.isBridge ? '#9e2a2b' : '#c8c0b1'))
-      .attr('stroke-width', (d) => (d.isBridge ? 2.5 : 2))
+      .attr('cursor', 'pointer')
+      .attr('stroke', (d) => {
+        if (isLinkSelected(d)) return '#1b2a41';
+        return d.isBridge ? '#9e2a2b' : '#c8c0b1';
+      })
+      .attr('stroke-width', (d) => {
+        if (isLinkSelected(d)) return 3.5;
+        return d.isBridge ? 2.5 : 2;
+      })
       .attr('stroke-dasharray', (d) => (d.isBridge ? '6,4' : 'none'))
-      .attr('marker-end', (d) => (d.isBridge ? 'url(#arrow-bridge)' : 'url(#arrow)'));
+      .attr('marker-end', (d) => {
+        if (isLinkSelected(d)) return 'url(#arrow-selected)';
+        return d.isBridge ? 'url(#arrow-bridge)' : 'url(#arrow)';
+      })
+      .on('click', (event, d) => {
+        event.stopPropagation();
+        if (onSelectLink) {
+          const original = data.links.find(
+            (l) => l.txHash === d.txHash || (getEntityId(l.source) === getEntityId(d.source) && getEntityId(l.target) === getEntityId(d.target))
+          ) || (d as unknown as GraphLink);
+          onSelectLink(original);
+        }
+      });
 
-    // Draw Link Labels (Values)
+    // Draw Link Labels (Values) with clean background pill
     const linkLabels = g
       .append('g')
       .attr('class', 'link-labels')
-      .selectAll('text')
+      .selectAll('g')
       .data(links)
-      .join('text')
-      .attr('font-size', '10px')
+      .join('g')
+      .attr('cursor', 'pointer')
+      .on('click', (event, d) => {
+        event.stopPropagation();
+        if (onSelectLink) {
+          const original = data.links.find(
+            (l) => l.txHash === d.txHash || (getEntityId(l.source) === getEntityId(d.source) && getEntityId(l.target) === getEntityId(d.target))
+          ) || (d as unknown as GraphLink);
+          onSelectLink(original);
+        }
+      });
+
+    linkLabels
+      .append('rect')
+      .attr('fill', (d) => (isLinkSelected(d) ? '#1b2a41' : '#f3efe6'))
+      .attr('stroke', (d) => (isLinkSelected(d) ? '#0f172a' : '#d6cfc2'))
+      .attr('stroke-width', (d) => (isLinkSelected(d) ? 1.5 : 0.75))
+      .attr('rx', 4)
+      .attr('ry', 4)
+      .attr('x', (d) => {
+        const textLen = (d.txCount && d.txCount > 1 && !d.value.includes('txs') ? `${d.value} (${d.txCount} txs)` : d.value).length;
+        const w = Math.max(72, textLen * 7 + 16);
+        return -w / 2;
+      })
+      .attr('y', -8)
+      .attr('width', (d) => {
+        const textLen = (d.txCount && d.txCount > 1 && !d.value.includes('txs') ? `${d.value} (${d.txCount} txs)` : d.value).length;
+        return Math.max(72, textLen * 7 + 16);
+      })
+      .attr('height', 16);
+
+    linkLabels
+      .append('text')
+      .attr('font-size', '9px')
       .attr('font-family', 'JetBrains Mono, monospace')
-      .attr('fill', '#575249')
+      .attr('font-weight', 'bold')
+      .attr('fill', (d) => (isLinkSelected(d) ? '#fff8f0' : '#1b2a41'))
       .attr('text-anchor', 'middle')
-      .text((d) => `${d.value} (${d.fee})`);
+      .attr('dominant-baseline', 'central')
+      .text((d) => (d.txCount && d.txCount > 1 && !d.value.includes('txs') ? `${d.value} (${d.txCount} txs)` : d.value));
 
     const drag = d3
       .drag<SVGGElement, D3Node>()
@@ -167,6 +258,8 @@ export const D3GraphVisualizer: React.FC<D3GraphVisualizerProps> = ({
       .attr('fill', 'none')
       .attr('stroke', (d) => {
         if (d.id === selectedNode?.id) return '#1b2a41';
+        if (d.type === 'VERIFIED_ENTITY' || d.type === 'BENIGN_PUBLIC') return '#0284c7';
+        if (d.type === 'SMART_CONTRACT') return '#818cf8';
         if (d.riskScore > 85) return '#9e2a2b';
         if (d.type === 'EXCHANGE_HOT') return '#2c5e43';
         return '#d6cfc2';
@@ -180,10 +273,17 @@ export const D3GraphVisualizer: React.FC<D3GraphVisualizerProps> = ({
       .attr('r', 18)
       .attr('fill', (d) => {
         switch (d.type) {
+          case 'VERIFIED_ENTITY':
+          case 'BENIGN_PUBLIC':
+            return '#0284c7';
+          case 'SMART_CONTRACT':
+            return '#6366f1';
+          case 'MIXER':
+            return '#9e2a2b';
           case 'VICTIM':
             return '#2c5e43';
           case 'SUSPECT_BURNER':
-            return '#9e2a2b';
+            return '#b91c1c';
           case 'INTERMEDIARY':
             return '#7d4a13';
           case 'BRIDGE_LOCK':
@@ -208,7 +308,12 @@ export const D3GraphVisualizer: React.FC<D3GraphVisualizerProps> = ({
       .attr('font-size', '11px')
       .attr('font-family', 'JetBrains Mono, monospace')
       .attr('font-weight', 'bold')
-      .text((d, i) => `#${i}`);
+      .text((d, i) => {
+        if (d.type === 'VERIFIED_ENTITY') return '✓';
+        if (d.type === 'SMART_CONTRACT') return '⚙';
+        if (d.type === 'MIXER') return '⚡';
+        return `#${i}`;
+      });
 
     // Node text label below
     node
@@ -238,9 +343,13 @@ export const D3GraphVisualizer: React.FC<D3GraphVisualizerProps> = ({
         .attr('x2', (d) => (d.target as D3Node).x!)
         .attr('y2', (d) => (d.target as D3Node).y!);
 
-      linkLabels
-        .attr('x', (d) => ((d.source as D3Node).x! + (d.target as D3Node).x!) / 2)
-        .attr('y', (d) => ((d.source as D3Node).y! + (d.target as D3Node).y!) / 2 - 8);
+      linkLabels.attr('transform', (d) => {
+        const sx = (d.source as D3Node).x || 0;
+        const sy = (d.source as D3Node).y || 0;
+        const tx = (d.target as D3Node).x || 0;
+        const ty = (d.target as D3Node).y || 0;
+        return `translate(${(sx + tx) / 2}, ${(sy + ty) / 2})`;
+      });
 
       node.attr('transform', (d) => `translate(${d.x},${d.y})`);
     });
@@ -265,7 +374,7 @@ export const D3GraphVisualizer: React.FC<D3GraphVisualizerProps> = ({
     return () => {
       simulation.stop();
     };
-  }, [data, selectedNode, onSelectNode]);
+  }, [data, selectedNode, onSelectNode, selectedLink, onSelectLink]);
 
   return (
     <div className="w-full h-full relative bg-[#e8e3d8] overflow-hidden">
@@ -274,12 +383,16 @@ export const D3GraphVisualizer: React.FC<D3GraphVisualizerProps> = ({
       {/* Visual Canvas Legends */}
       <div className="absolute bottom-4 left-4 bg-[#f3efe6]/90 backdrop-blur-sm border border-[#d6cfc2] p-2.5 rounded-lg shadow-xs flex items-center gap-4 text-xs font-mono text-[#575249]">
         <div className="flex items-center gap-1.5">
+          <span className="w-3 h-3 rounded-full bg-[#0284c7]"></span>
+          <span>Verified/Clean</span>
+        </div>
+        <div className="flex items-center gap-1.5">
           <span className="w-3 h-3 rounded-full bg-[#2c5e43]"></span>
           <span>Victim (#0)</span>
         </div>
         <div className="flex items-center gap-1.5">
           <span className="w-3 h-3 rounded-full bg-[#9e2a2b]"></span>
-          <span>Suspect / Burner</span>
+          <span>Suspect / Mixer</span>
         </div>
         <div className="flex items-center gap-1.5">
           <span className="w-3 h-3 rounded-full bg-[#1b2a41]"></span>

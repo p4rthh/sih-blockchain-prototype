@@ -26,6 +26,8 @@ __pycache__/
 venv/
 .venv/
 env/
+backend/venv/
+.pytest_cache/
 
 # Logs & Debug
 *.log

@@ -68,9 +68,62 @@ export const CommandCenterView: React.FC<CommandCenterViewProps> = ({
             className="w-full sm:w-auto px-6 py-2.5 bg-[#1b2a41] hover:bg-[#111e30] active:translate-y-px text-[#fff8f0] font-semibold text-xs rounded-lg transition-colors flex items-center justify-center space-x-2 shadow-xs shrink-0 tracking-wider uppercase font-mono"
           >
             <span className="material-symbols-outlined text-[16px]">travel_explore</span>
-            <span>Execute Trace (90s)</span>
+            <span>Execute Trace (Live)</span>
           </button>
         </form>
+
+        {/* Quick Demo & Live Wallet Presets */}
+        <div className="mt-3 flex flex-wrap items-center gap-2 text-xs font-mono">
+          <button
+            type="button"
+            onClick={() => { setQuickInput('0x098b716b8aaf21512996dc57eb0615e2383e2f96'); onTraceWallet('0x098b716b8aaf21512996dc57eb0615e2383e2f96'); }}
+            className="px-2 py-1 rounded bg-[#fee2e2] hover:bg-[#fecaca] text-[#991b1b] border border-[#fca5a5] font-bold transition-colors"
+          >
+            🚨 Lazarus ($624M Ronin Heist)
+          </button>
+          <button
+            type="button"
+            onClick={() => { setQuickInput('0x59abf3837fa962d6853b4cc0a19513aa031fd32b'); onTraceWallet('0x59abf3837fa962d6853b4cc0a19513aa031fd32b'); }}
+            className="px-2 py-1 rounded bg-[#fee2e2] hover:bg-[#fecaca] text-[#991b1b] border border-[#fca5a5] font-bold transition-colors"
+          >
+            🚨 FTX Drainer ($400M)
+          </button>
+          <button
+            type="button"
+            onClick={() => { setQuickInput('0xda25ee226e534d868f0dd8a459536b03fee9079b'); onTraceWallet('0xda25ee226e534d868f0dd8a459536b03fee9079b'); }}
+            className="px-2 py-1 rounded bg-[#fee2e2] hover:bg-[#fecaca] text-[#991b1b] border border-[#fca5a5] font-bold transition-colors"
+          >
+            🚨 BadgerDAO ($120M)
+          </button>
+          <button
+            type="button"
+            onClick={() => { setQuickInput('0x12d66f87a04a9e220743712ce6d9bb1b5616b8fc'); onTraceWallet('0x12d66f87a04a9e220743712ce6d9bb1b5616b8fc'); }}
+            className="px-2 py-1 rounded bg-[#fee2e2] hover:bg-[#ded7c8] text-[#9e2a2b] border border-[#fca5a5] transition-colors"
+          >
+            ⚠️ Tornado Cash (Mixer)
+          </button>
+          <button
+            type="button"
+            onClick={() => { setQuickInput('0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045'); onTraceWallet('0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045'); }}
+            className="px-2 py-1 rounded bg-[#e0f2fe] hover:bg-[#bae6fd] text-[#0369a1] border border-[#bae6fd] transition-colors"
+          >
+            ✓ Vitalik (Benign)
+          </button>
+          <button
+            type="button"
+            onClick={() => { setQuickInput('0x28C6c06298d514Db089934071355E5743bf21d60'); onTraceWallet('0x28C6c06298d514Db089934071355E5743bf21d60'); }}
+            className="px-2 py-1 rounded bg-[#ece7dc] hover:bg-[#ded7c8] text-[#1b2a41] border border-[#d6cfc2] transition-colors"
+          >
+            🏦 Binance Hot 14
+          </button>
+          <button
+            type="button"
+            onClick={() => { setQuickInput('0x71c56345260170a44ec2b8109d941d3b0790bf7e'); onTraceWallet('0x71c56345260170a44ec2b8109d941d3b0790bf7e'); }}
+            className="px-2 py-1 rounded bg-[#ece7dc] hover:bg-[#ded7c8] text-[#2c5e43] border border-[#d6cfc2] transition-colors"
+          >
+            🏛️ WazirX FIR (Benchmark)
+          </button>
+        </div>
       </div>
 
       {/* KPI Stats Grid */}
