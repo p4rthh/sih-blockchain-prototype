@@ -176,11 +176,11 @@ def test_unified_search():
     assert data["vasps"][0]["name"] == "WazirX"
 
     # Search by victim name
-    res2 = client.get("/api/v1/search?q=Malhotra")
+    res2 = client.get("/api/v1/search?q=Sharma")
     assert res2.status_code == 200
     data2 = res2.json()
     assert len(data2["complaints"]) >= 1
-    assert "Malhotra" in data2["complaints"][0]["victimName"]
+    assert "Sharma" in data2["complaints"][0]["victimName"]
 
 def test_unhappy_path_mixer_and_dusting():
     # 1. Tornado Cash mixer check

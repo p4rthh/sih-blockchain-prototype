@@ -24,7 +24,7 @@ class EvidenceService:
         io_name: str = "Inspector R. K. Sharma",
         police_unit: str = "Special Cell Cyber Crime PS, Mandir Marg, New Delhi",
         target_vasp_id: str = "vasp-001",
-        victim_name: str = "Sanjay K. Malhotra"
+        victim_name: str = "Complainant"
     ) -> CourtDossier:
         assigned_vasp = get_vasp_by_id(target_vasp_id) or SEED_VASPS[0]
 
@@ -42,6 +42,7 @@ class EvidenceService:
             "fir_number": fir_number,
             "root_wallet": trace_data.root_address,
             "terminal_vasp": assigned_vasp.name,
+            "victim_name": victim_name,
             "nodes": [n.model_dump(by_alias=True) for n in trace_data.nodes],
             "links": [l.model_dump(by_alias=True) for l in trace_data.links],
             "timestamp": datetime.now(timezone.utc).isoformat()
@@ -67,5 +68,6 @@ class EvidenceService:
             section94_notice_preview=narratives["section_94_notice"],
             is_signed=True,
             generated_at=now_str,
-            llm_model=narratives.get("llm_model", "Ollama (Llama 3.1 8B)")
+            victim_name=victim_name,
+            llm_model=narratives.get("llm_model", "Ollama (Llama 3 8B)")
         )

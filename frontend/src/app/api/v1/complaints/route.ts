@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { MOCK_COMPLAINTS } from '@/lib/api/mockData';
 import { Complaint, ChainType } from '@/lib/types/forensics';
 
-const BACKEND_URL = process.env.BACKEND_API_URL || process.env.NEXT_PUBLIC_API_URL;
+const BACKEND_URL = process.env.BACKEND_API_URL || process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000';
 
 export async function GET() {
   if (BACKEND_URL) {

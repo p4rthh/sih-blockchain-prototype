@@ -131,5 +131,6 @@ export interface CourtDossier {
   section94NoticePreview: string;
   isSigned: boolean;
   generatedAt: string;
+  victimName?: string;
   llmModel?: string;
 }

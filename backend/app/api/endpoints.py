@@ -131,13 +131,23 @@ def list_vasps_alias():
 # --------------------------------------------------------------------------
 # 4. Court-Admissible Dossier & Legal Evidence Packets
 # --------------------------------------------------------------------------
-def _resolve_complaint_and_vasp(case_ref: str, trace_data: Optional[TraceGraphData] = None):
+def _resolve_complaint_and_vasp(
+    case_ref: str,
+    trace_data: Optional[TraceGraphData] = None,
+    override_victim: Optional[str] = None,
+    override_fir: Optional[str] = None,
+    override_io: Optional[str] = None,
+    override_unit: Optional[str] = None
+):
     complaint = None
+    clean_ref = (case_ref or "").strip()
     for c in trace_service.complaints.values():
         if (
-            c.acknowledgement_no.lower() == case_ref.lower()
-            or c.id.lower() == case_ref.lower()
-            or (trace_data and c.suspect_address.lower() == trace_data.root_address.lower())
+            (c.acknowledgement_no and c.acknowledgement_no.lower() == clean_ref.lower())
+            or (c.id and c.id.lower() == clean_ref.lower())
+            or (c.fir_number and clean_ref.lower() in c.fir_number.lower())
+            or (trace_data and c.suspect_address and c.suspect_address.lower() == trace_data.root_address.lower())
+            or (trace_data and c.suspect_address and trace_data.root_address.lower().startswith(c.suspect_address[:8].lower()))
         ):
             complaint = c
             break
@@ -149,10 +159,10 @@ def _resolve_complaint_and_vasp(case_ref: str, trace_data: Optional[TraceGraphDa
                 target_vasp_id = v.id
                 break
 
-    fir_number = complaint.fir_number if complaint else "FIR-412/2026"
-    victim_name = complaint.victim_name if complaint else "Sanjay K. Malhotra"
-    io_name = complaint.io_name if complaint else "Inspector R. K. Sharma"
-    police_unit = complaint.police_station if complaint else "Special Cell Cyber Crime PS, Mandir Marg, New Delhi"
+    fir_number = override_fir or (complaint.fir_number if complaint else f"FIR-{abs(hash(case_ref)) % 800 + 100}/2026")
+    victim_name = override_victim or (complaint.victim_name if complaint else (f"Complainant ({trace_data.root_address[:8]}...)" if trace_data else "Complainant"))
+    io_name = override_io or (complaint.io_name if complaint else "Inspector R. K. Sharma")
+    police_unit = override_unit or (complaint.police_station if complaint else "Special Cell Cyber Crime PS, Mandir Marg, New Delhi")
 
     return complaint, target_vasp_id, fir_number, victim_name, io_name, police_unit
 
@@ -162,7 +172,24 @@ def get_dossier(case_ref: str):
     Generates or fetches an immutable court-admissible forensic dossier
     with SHA-256 seal, IPFS reference, and bilingual narrative.
     """
-    trace_data = trace_service.get_trace_by_id("default")
+    clean_ref = (case_ref or "").strip()
+    matched_complaint = None
+    for c in trace_service.complaints.values():
+        if (
+            (c.acknowledgement_no and c.acknowledgement_no.lower() == clean_ref.lower())
+            or (c.id and c.id.lower() == clean_ref.lower())
+            or (c.fir_number and clean_ref.lower() in c.fir_number.lower())
+        ):
+            matched_complaint = c
+            break
+
+    if matched_complaint and matched_complaint.suspect_address and not "..." in matched_complaint.suspect_address:
+        trace_data = trace_service.run_trace(TraceRequest(wallet_address=matched_complaint.suspect_address, chain=matched_complaint.chain))
+    else:
+        trace_data = trace_service.get_trace_by_id(case_ref)
+        if not trace_data:
+            trace_data = trace_service.get_trace_by_id("default")
+
     complaint, target_vasp_id, fir_number, victim_name, io_name, police_unit = _resolve_complaint_and_vasp(case_ref, trace_data)
     return EvidenceService.compile_dossier(
         trace_data=trace_data,
@@ -194,6 +221,17 @@ def download_dossier_pdf(
         trace_data = trace_service.run_trace(TraceRequest(wallet_address=wallet_address))
     
     if not trace_data:
+        clean_ref = (case_ref or "").strip()
+        for c in trace_service.complaints.values():
+            if (
+                (c.acknowledgement_no and c.acknowledgement_no.lower() == clean_ref.lower())
+                or (c.id and c.id.lower() == clean_ref.lower())
+            ):
+                if c.suspect_address and not "..." in c.suspect_address:
+                    trace_data = trace_service.run_trace(TraceRequest(wallet_address=c.suspect_address, chain=c.chain))
+                break
+
+    if not trace_data:
         trace_data = trace_service.get_trace_by_id("default")
 
     complaint, resolved_vasp_id, fir_number, victim_name, io_name, police_unit = _resolve_complaint_and_vasp(case_ref, trace_data)
@@ -219,12 +257,22 @@ def download_dossier_pdf(
 @router.post("/reports", response_model=CourtDossier, tags=["Legal Evidence"])
 def generate_report(request: ReportGenerateRequest):
     """Compiles a statutory investigation report for court submission."""
-    trace_data = trace_service.get_trace_by_id(request.trace_id)
-    if not trace_data or (trace_data.trace_id != request.trace_id and (request.trace_id.startswith("0x") or request.trace_id.startswith("bc1") or request.trace_id.startswith("T"))):
-        trace_data = trace_service.run_trace(TraceRequest(wallet_address=request.trace_id))
+    if request.trace_data:
+        trace_data = request.trace_data
+    else:
+        trace_data = trace_service.get_trace_by_id(request.trace_id)
+        if not trace_data or (trace_data.trace_id != request.trace_id and (request.trace_id.startswith("0x") or request.trace_id.startswith("bc1") or request.trace_id.startswith("T"))):
+            trace_data = trace_service.run_trace(TraceRequest(wallet_address=request.trace_id))
     
     case_ref = request.case_ref or f"CASE-{request.trace_id[-5:]}"
-    complaint, target_vasp_id, fir_number, victim_name, io_name, police_unit = _resolve_complaint_and_vasp(case_ref, trace_data)
+    complaint, target_vasp_id, fir_number, victim_name, io_name, police_unit = _resolve_complaint_and_vasp(
+        case_ref,
+        trace_data,
+        override_victim=request.victim_name,
+        override_fir=request.fir_number,
+        override_io=request.io_name,
+        override_unit=request.police_unit
+    )
 
     return EvidenceService.compile_dossier(
         trace_data=trace_data,
@@ -238,14 +286,25 @@ def generate_report(request: ReportGenerateRequest):
 
 @router.post("/reports/pdf", tags=["Legal Evidence"])
 def generate_report_pdf(request: ReportGenerateRequest):
-    """Compiles and downloads statutory investigation PDF report directly."""
+    """Compiles and exports an official signed PDF court dossier."""
     from app.services.pdf_service import PDFDossierGenerator
-    trace_data = trace_service.get_trace_by_id(request.trace_id)
-    if not trace_data or (trace_data.trace_id != request.trace_id and (request.trace_id.startswith("0x") or request.trace_id.startswith("bc1") or request.trace_id.startswith("T"))):
-        trace_data = trace_service.run_trace(TraceRequest(wallet_address=request.trace_id))
+
+    if request.trace_data:
+        trace_data = request.trace_data
+    else:
+        trace_data = trace_service.get_trace_by_id(request.trace_id)
+        if not trace_data or (trace_data.trace_id != request.trace_id and (request.trace_id.startswith("0x") or request.trace_id.startswith("bc1") or request.trace_id.startswith("T"))):
+            trace_data = trace_service.run_trace(TraceRequest(wallet_address=request.trace_id))
 
     case_ref = request.case_ref or f"CASE-{request.trace_id[-5:]}"
-    complaint, target_vasp_id, fir_number, victim_name, io_name, police_unit = _resolve_complaint_and_vasp(case_ref, trace_data)
+    complaint, target_vasp_id, fir_number, victim_name, io_name, police_unit = _resolve_complaint_and_vasp(
+        case_ref,
+        trace_data,
+        override_victim=request.victim_name,
+        override_fir=request.fir_number,
+        override_io=request.io_name,
+        override_unit=request.police_unit
+    )
 
     dossier = EvidenceService.compile_dossier(
         trace_data=trace_data,

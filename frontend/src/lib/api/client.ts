@@ -100,9 +100,9 @@ export const apiClient = {
   },
 
   // 5. Fetch Court Admissible Evidence Dossier
-  async getDossier(caseRef: string): Promise<CourtDossier> {
+  async getDossier(caseRef: string, currentTrace?: TraceGraphData): Promise<CourtDossier> {
     if (USE_MOCK) {
-      return Promise.resolve(generateDynamicDossier(caseRef));
+      return Promise.resolve(generateDynamicDossier(caseRef, currentTrace));
     }
     try {
       const res = await fetch(`${BASE_URL}/api/v1/reports/${encodeURIComponent(caseRef)}`);
@@ -112,11 +112,22 @@ export const apiClient = {
     } catch (err) {
       console.warn('Backend unavailable, activating client dynamic dossier synthesis', err);
     }
-    return generateDynamicDossier(caseRef);
+    return generateDynamicDossier(caseRef, currentTrace);
   },
 
   // 5b. Compile new Court Dossier for active trace
-  async compileDossier(traceId: string, caseRef?: string, currentTrace?: TraceGraphData): Promise<CourtDossier | null> {
+  async compileDossier(
+    traceId: string,
+    caseRef?: string,
+    currentTrace?: TraceGraphData,
+    metadata?: {
+      victimName?: string;
+      firNumber?: string;
+      policeUnit?: string;
+      ioName?: string;
+      amount?: string;
+    }
+  ): Promise<CourtDossier | null> {
     try {
       const res = await fetch(`${BASE_URL}/api/v1/reports`, {
         method: 'POST',
@@ -125,6 +136,12 @@ export const apiClient = {
           trace_id: traceId,
           case_ref: caseRef,
           trace: currentTrace,
+          trace_data: currentTrace,
+          victim_name: metadata?.victimName,
+          fir_number: metadata?.firNumber,
+          police_unit: metadata?.policeUnit,
+          io_name: metadata?.ioName,
+          amount: metadata?.amount,
         }),
       });
       if (res.ok) {
@@ -133,7 +150,7 @@ export const apiClient = {
     } catch (err) {
       console.warn('Backend unavailable, generating local dossier synthesis', err);
     }
-    return generateDynamicDossier(caseRef || 'NCRP-2026-DEL-89210', currentTrace);
+    return generateDynamicDossier(caseRef || 'NCRP-2026-DEL-89210', currentTrace, metadata);
   },
 
   // 6. Download Official Court-Admissible PDF Dossier (Section 63 BSA / Sec 65B IEA)

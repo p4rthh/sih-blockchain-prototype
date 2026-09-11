@@ -24,11 +24,40 @@ export default function Home() {
 
   useEffect(() => {
     // Initial fetch from our API client
-    apiClient.getComplaints().then(setComplaints);
+    apiClient.getComplaints().then((cList) => {
+      setComplaints(cList);
+      if (cList && cList.length > 0) {
+        const topCase = cList[0];
+        setSelectedComplaint(topCase);
+        apiClient.compileDossier(
+          'TRC-2026-B88FF66C',
+          topCase.acknowledgementNo,
+          undefined,
+          {
+            victimName: topCase.victimName,
+            firNumber: topCase.firNumber,
+            policeUnit: topCase.policeStation,
+            ioName: topCase.ioName,
+            amount: topCase.amount,
+          }
+        ).then((d) => {
+          if (d) setDossier(d);
+        });
+      }
+    });
     apiClient.getTrace('0x71C438D9A40326e7a2b9d0b5030225d3129889A4').then(setTraceData);
     apiClient.getVasps().then(setVasps);
-    apiClient.getDossier('NCRP-2026-DEL-89210').then(setDossier);
   }, []);
+
+  const handleTabChange = async (tab: TabType) => {
+    setActiveTab(tab);
+    if (tab === 'dossier') {
+      const activeCaseRef = selectedComplaint?.acknowledgementNo;
+      if (!dossier || (activeCaseRef && dossier.caseRef !== activeCaseRef)) {
+        await handleGenerateDossier();
+      }
+    }
+  };
 
   const handleSearch = async () => {
     if (!searchQuery.trim()) return;
@@ -47,7 +76,17 @@ export default function Home() {
       const freshDossier = await apiClient.compileDossier(
         res.traceId,
         caseRef,
-        res
+        res,
+        matching ? {
+          victimName: matching.victimName,
+          firNumber: matching.firNumber,
+          policeUnit: matching.policeStation,
+          ioName: matching.ioName,
+          amount: matching.amount,
+        } : {
+          victimName: `Complainant (${q.slice(0, 8)}...)`,
+          amount: res.totalValueStolen,
+        }
       );
       if (freshDossier) {
         setDossier(freshDossier);
@@ -67,7 +106,14 @@ export default function Home() {
       const freshDossier = await apiClient.compileDossier(
         res.traceId,
         complaint.acknowledgementNo,
-        res
+        res,
+        {
+          victimName: complaint.victimName,
+          firNumber: complaint.firNumber,
+          policeUnit: complaint.policeStation,
+          ioName: complaint.ioName,
+          amount: complaint.amount,
+        }
       );
       if (freshDossier) {
         setDossier(freshDossier);
@@ -91,7 +137,17 @@ export default function Home() {
       const freshDossier = await apiClient.compileDossier(
         res.traceId,
         caseRef,
-        res
+        res,
+        matching ? {
+          victimName: matching.victimName,
+          firNumber: matching.firNumber,
+          policeUnit: matching.policeStation,
+          ioName: matching.ioName,
+          amount: matching.amount,
+        } : {
+          victimName: `Complainant (${address.slice(0, 8)}...)`,
+          amount: res.totalValueStolen,
+        }
       );
       if (freshDossier) {
         setDossier(freshDossier);
@@ -108,7 +164,14 @@ export default function Home() {
       const freshDossier = await apiClient.compileDossier(
         traceData.traceId,
         caseRef,
-        traceData
+        traceData,
+        selectedComplaint ? {
+          victimName: selectedComplaint.victimName,
+          firNumber: selectedComplaint.firNumber,
+          policeUnit: selectedComplaint.policeStation,
+          ioName: selectedComplaint.ioName,
+          amount: selectedComplaint.amount,
+        } : undefined
       );
       if (freshDossier) {
         setDossier(freshDossier);
@@ -121,7 +184,7 @@ export default function Home() {
     <div className="bg-[#ede8de] text-[#21201d] h-screen w-screen overflow-hidden flex flex-col font-sans selection:bg-[#d6cfc2]">
       {/* Persistent Top Navigation Bar */}
       <Header
-        setActiveTab={(t) => setActiveTab(t as TabType)}
+        setActiveTab={(t) => handleTabChange(t as TabType)}
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
         onSearch={handleSearch}
@@ -132,7 +195,7 @@ export default function Home() {
         {/* Persistent Left Sidebar */}
         <Sidebar
           activeTab={activeTab}
-          setActiveTab={(t) => setActiveTab(t as TabType)}
+          setActiveTab={(t) => handleTabChange(t as TabType)}
           onNewDossier={() => setActiveTab('intake')}
         />
 

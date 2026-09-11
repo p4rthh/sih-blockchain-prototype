@@ -163,7 +163,8 @@ class CourtDossier(CamelModel):
     section94_notice_preview: str
     is_signed: bool = True
     generated_at: str
-    llm_model: Optional[str] = "Ollama (Llama 3.1 8B)"
+    victim_name: Optional[str] = None
+    llm_model: Optional[str] = "Ollama (Llama 3 8B)"
 
 class FreezeNoticeRequest(CamelModel):
     case_ref: str
@@ -185,6 +186,12 @@ class ReportGenerateRequest(CamelModel):
     case_ref: Optional[str] = None
     format: Literal["PDF", "JSON"] = "JSON"
     language: Literal["en", "hi", "bilingual"] = "bilingual"
+    victim_name: Optional[str] = None
+    fir_number: Optional[str] = None
+    io_name: Optional[str] = None
+    police_unit: Optional[str] = None
+    amount: Optional[str] = None
+    trace_data: Optional[TraceGraphData] = None
 
 class HealthResponse(CamelModel):
     status: str

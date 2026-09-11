@@ -16,7 +16,7 @@ DEFAULT_TRACE_GRAPH: TraceGraphData = TraceGraphData(
         GraphNode(
             id="node-victim",
             address="0x1A2B3C4D5E6F7890123456789ABCDEF012345678",
-            label="Victim (Sanjay Malhotra)",
+            label="Victim (Complainant Origin)",
             type="VICTIM",
             chain="ethereum",
             balance="0.05 ETH",

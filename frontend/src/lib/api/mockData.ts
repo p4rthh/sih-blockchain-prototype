@@ -2012,7 +2012,7 @@ export const EXACT_WAZIRX_TRACE: TraceGraphData = {
     {
       "id": "node-victim",
       "address": "0x1A2B3C4D5E6F7890123456789ABCDEF012345678",
-      "label": "Victim (Sanjay Malhotra)",
+      "label": "Victim (Complainant Origin)",
       "type": "VICTIM",
       "chain": "ethereum",
       "balance": "0.05 ETH",
@@ -2806,20 +2806,32 @@ export const MOCK_COMPLAINTS: Complaint[] = [
   }
 ];
 
-export function generateDynamicDossier(caseRef?: string, trace?: TraceGraphData): CourtDossier {
+export function generateDynamicDossier(
+  caseRef?: string,
+  trace?: TraceGraphData,
+  metadata?: {
+    victimName?: string;
+    firNumber?: string;
+    policeUnit?: string;
+    ioName?: string;
+    amount?: string;
+  }
+): CourtDossier {
   const activeTrace = trace || EXACT_WAZIRX_TRACE;
   
   // Find matching complaint by caseRef or suspect root address
   const matchingComplaint = MOCK_COMPLAINTS.find(
-    (c) => c.acknowledgementNo === caseRef || c.id === caseRef || c.suspectAddress.toLowerCase() === activeTrace.rootAddress.toLowerCase()
+    (c) => (caseRef && (c.acknowledgementNo.toLowerCase() === caseRef.toLowerCase() || c.id.toLowerCase() === caseRef.toLowerCase() || c.firNumber.toLowerCase().includes(caseRef.toLowerCase())))
+        || (activeTrace.rootAddress && c.suspectAddress.toLowerCase() === activeTrace.rootAddress.toLowerCase())
   );
 
-  const firNumber = matchingComplaint?.firNumber || 'FIR-402/2026 u/s 66D IT Act & 318(4) BNS';
-  const victimName = matchingComplaint?.victimName || 'Sanjay K. Malhotra';
-  const policeUnit = matchingComplaint?.policeStation || 'Delhi Police Special Cell (Cyber Operations)';
-  const ioName = matchingComplaint?.ioName || 'Inspector R. K. Sharma';
+  const firNumber = metadata?.firNumber || matchingComplaint?.firNumber || 'FIR-402/2026 u/s 66D IT Act & 318(4) BNS';
+  const victimName = metadata?.victimName || matchingComplaint?.victimName || (activeTrace.rootAddress ? `Complainant (${activeTrace.rootAddress.slice(0, 8)}...)` : 'Aditya Sharma');
+  const policeUnit = metadata?.policeUnit || matchingComplaint?.policeStation || 'Delhi Police Special Cell (Cyber Operations)';
+  const ioName = metadata?.ioName || matchingComplaint?.ioName || 'Inspector R. K. Sharma';
   const effectiveCaseRef = caseRef || matchingComplaint?.acknowledgementNo || 'NCRP-2026-DEL-89210';
-  const totalAmount = matchingComplaint?.amount || activeTrace.totalValueStolen;
+  const totalAmount = metadata?.amount || matchingComplaint?.amount || activeTrace.totalValueStolen;
+  const confidencePct = Math.round(activeTrace.confidence <= 1 ? activeTrace.confidence * 100 : activeTrace.confidence);
 
   // Match designated terminal exchange or fallback to registered VASP
   const vasp = MOCK_VASPS.find(
@@ -2836,8 +2848,8 @@ export function generateDynamicDossier(caseRef?: string, trace?: TraceGraphData)
     unit: policeUnit,
     sha256Digest: '7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f',
     ipfsCid: 'bafybeigdyrzt5sfp7udm7hu76uh7y26nf3efuylqabf3oclgtqy55fbzdi',
-    synopsisEn: `Forensic blockchain attribution initiated under ${effectiveCaseRef} established that stolen funds (${totalAmount}) siphoned from complainant ${victimName} were routed through a ${activeTrace.totalHops}-hop ${activeTrace.typology} obfuscation network. Automated multi-hop heuristics and GraphSAGE neural clustering conclusively attributed the terminal funds to domestic exchange ${vasp.name} (${vasp.fiuRegNumber}) with ${Math.round((activeTrace.confidence || 0.92) * 100)}% confidence. Statutory directive under Section 94 BNSS prepared for compliance dispatch.`,
-    synopsisHi: `एनसीआरपी शिकायत ${effectiveCaseRef} (शिकायतकर्ता: ${victimName}) के अंतर्गत संदिग्ध वॉलेट ${activeTrace.rootAddress} की ब्लॉकचेन फॉरेंसिक जांच पूर्ण की गई। कुल ${activeTrace.totalHops} चरणों के उपरांत उड़ाई गई धनराशि (${totalAmount}) को ${activeTrace.typology} नेटवर्क के माध्यम से अंतरित पाया गया। चेनवॉच फोरेंसिक इंजन द्वारा ${Math.round((activeTrace.confidence || 0.92) * 100)}% विश्वसनीयता के साथ यह राशि एफआईयू-पंजीकृत एक्सचेंज ${vasp.name} के अधिकृत खाते में प्रमाणित की गई। धारा 94 बीएनएसएस नोटिस तैयार किया गया है।`,
+    synopsisEn: `Forensic blockchain attribution initiated under ${effectiveCaseRef} established that stolen funds (${totalAmount}) siphoned from complainant ${victimName} were routed through a ${activeTrace.totalHops}-hop ${activeTrace.typology} obfuscation network. Automated multi-hop heuristics and GraphSAGE neural clustering conclusively attributed the terminal funds to domestic exchange ${vasp.name} (${vasp.fiuRegNumber}) with ${confidencePct}% confidence. Statutory directive under Section 94 BNSS prepared for compliance dispatch.`,
+    synopsisHi: `एनसीआरपी शिकायत ${effectiveCaseRef} (शिकायतकर्ता: ${victimName}) के अंतर्गत संदिग्ध वॉलेट ${activeTrace.rootAddress} की ब्लॉकचेन फोरेंसिक जांच पूर्ण की गई। कुल ${activeTrace.totalHops} चरणों के उपरांत उड़ाई गई धनराशि (${totalAmount}) को ${activeTrace.typology} नेटवर्क के माध्यम से अंतरित पाया गया। चेनवॉच फोरेंसिक इंजन द्वारा ${confidencePct}% विश्वसनीयता के साथ यह राशि एफआईयू-पंजीकृत एक्सचेंज ${vasp.name} के अधिकृत खाते में प्रमाणित की गई। धारा 94 बीएनएसएस नोटिस तैयार किया गया है।`,
     traceData: activeTrace,
     assignedVASP: vasp,
     section94NoticePreview: `NOTICE UNDER SECTION 94 OF BHARATIYA NAGARIK SURAKSHA SANHITA (BNSS), 2023 / SEC 91 CrPC
@@ -2864,7 +2876,8 @@ ${ioName}
 ${policeUnit}`,
     isSigned: true,
     generatedAt: new Date().toISOString(),
-    llmModel: 'Ollama (Llama 3.1 8B)'
+    victimName: victimName,
+    llmModel: 'Ollama (Llama 3 8B)'
   };
 }
 

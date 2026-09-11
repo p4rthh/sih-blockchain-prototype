@@ -115,11 +115,21 @@ export const DossierView: React.FC<DossierViewProps> = ({ dossier, onDispatchFre
             </div>
 
             {/* Case Metadata Grid */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-3.5">
               <div className="bg-[#ece7dc] p-3.5 rounded border border-[#d5cec1]">
                 <div className="text-[10px] font-mono text-[#797368] uppercase">Case Reference</div>
-                <div className="font-mono text-xs text-[#21201d] font-bold mt-1">{dossier.caseRef}</div>
-                <div className="text-[10px] text-[#575249] mt-0.5">{dossier.firNumber}</div>
+                <div className="font-mono text-xs text-[#21201d] font-bold mt-1 truncate">{dossier.caseRef}</div>
+                <div className="text-[10px] text-[#575249] mt-0.5 truncate">{dossier.firNumber}</div>
+              </div>
+
+              <div className="bg-[#ece7dc] p-3.5 rounded border border-[#d5cec1]">
+                <div className="text-[10px] font-mono text-[#797368] uppercase">Complainant / Victim</div>
+                <div className="font-mono text-xs text-[#2c5e43] font-bold mt-1 truncate" title={dossier.victimName || 'Complainant'}>
+                  {dossier.victimName || 'Complainant'}
+                </div>
+                <div className="text-[10px] text-[#575249] mt-0.5 truncate">
+                  Loss: {dossier.traceData?.totalValueStolen || '12.50 ETH'}
+                </div>
               </div>
 
               <div className="bg-[#ece7dc] p-3.5 rounded border border-[#d5cec1]">
@@ -134,11 +144,11 @@ export const DossierView: React.FC<DossierViewProps> = ({ dossier, onDispatchFre
 
               <div className="bg-[#ece7dc] p-3.5 rounded border border-[#d5cec1]">
                 <div className="text-[10px] font-mono text-[#797368] uppercase">Investigating Officer</div>
-                <div className="text-xs text-[#21201d] font-bold mt-1">{dossier.investigatingOfficer}</div>
-                <div className="text-[10px] text-[#575249] mt-0.5">{dossier.unit}</div>
+                <div className="text-xs text-[#21201d] font-bold mt-1 truncate">{dossier.investigatingOfficer}</div>
+                <div className="text-[10px] text-[#575249] mt-0.5 truncate">{dossier.unit}</div>
               </div>
 
-              <div className="bg-[#ece7dc] p-3.5 rounded border border-[#d5cec1]">
+              <div className="bg-[#ece7dc] p-3.5 rounded border border-[#d5cec1] col-span-2 md:col-span-1">
                 <div className="text-[10px] font-mono text-[#797368] uppercase">Cryptographic Digest</div>
                 <div className="font-mono text-[10px] text-[#21201d] font-bold truncate mt-1">
                   {dossier.sha256Digest.slice(0, 16)}...
