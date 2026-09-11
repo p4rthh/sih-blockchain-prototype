@@ -291,50 +291,6 @@ export const DossierView: React.FC<DossierViewProps> = ({ dossier, onDispatchFre
             </div>
           </div>
 
-          {/* METHODOLOGY & ALGORITHMIC PROOF APPENDIX */}
-          <div className="bg-[#f4f0e6] border border-[#d5cec1] rounded-xl p-5 space-y-4 shadow-xs">
-            <div className="flex items-center space-x-2 border-b border-[#d5cec1] pb-3">
-              <span className="material-symbols-outlined text-[#1b2a41] text-[18px]">functions</span>
-              <h3 className="text-sm text-[#21201d] font-bold font-serif uppercase tracking-wide">
-                Forensic Methodology &amp; Algorithmic Proof Appendix
-              </h3>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
-              <div className="bg-[#ece7dc] p-3.5 rounded border border-[#d5cec1] space-y-1.5">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-[#21201d]">01 // GraphSAGE GNN</span>
-                  <span className="font-mono text-[10px] text-[#2c5e43] font-bold">P &gt; 0.982</span>
-                </div>
-                <p className="text-[11px] text-[#3c3933] leading-relaxed">
-                  Identifies behavioral embeddings and multi-vector similarity between unclustered burner wallets and known laundering rings using inductive representation learning.
-                </p>
-                <div className="text-[10px] font-mono text-[#575249]">Model: NCRP-SAGE-2.4-IND</div>
-              </div>
-
-              <div className="bg-[#ece7dc] p-3.5 rounded border border-[#d5cec1] space-y-1.5">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-[#21201d]">02 // BFS Traversal</span>
-                  <span className="font-mono text-[10px] text-[#2c5e43] font-bold">DEPTH: 5 HOPS</span>
-                </div>
-                <p className="text-[11px] text-[#3c3933] leading-relaxed">
-                  Breadth-First Search executes continuous FIFO mempool resolution, reconstructing non-linear peel chains and gas subsidizer cross-links without heuristic ambiguity.
-                </p>
-                <div className="text-[10px] font-mono text-[#2c5e43] font-bold">Path Integrity: 0 Collisions</div>
-              </div>
-
-              <div className="bg-[#ece7dc] p-3.5 rounded border border-[#d5cec1] space-y-1.5">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-[#21201d]">03 // Cross-Chain Proof</span>
-                  <span className="font-mono text-[10px] text-[#2c5e43] font-bold">Δt: 128 SEC</span>
-                </div>
-                <p className="text-[11px] text-[#3c3933] leading-relaxed">
-                  Chronological block reconciliation verifies smart contract lock events on Ethereum Mainnet against equivalent token mint transactions on Binance Smart Chain.
-                </p>
-                <div className="text-[10px] font-mono text-[#575249]">Relayer Hash: 0x9a3e...b1</div>
-              </div>
-            </div>
-          </div>
         </div>
       </section>
 

@@ -41,12 +41,6 @@ export const CommandCenterView: React.FC<CommandCenterViewProps> = ({
             </p>
           </div>
 
-          <div className="flex items-center gap-3 shrink-0">
-            <div className="px-3.5 py-1.5 rounded-lg bg-[#eae5db] border border-[#d6cfc2] text-right font-mono">
-              <div className="text-[10px] text-[#797368]">GOLDEN HOUR COUNTER</div>
-              <div className="text-sm font-bold text-[#9e2a2b]">48m : 12s REMAINING</div>
-            </div>
-          </div>
         </div>
 
         {/* Quick Launch Search Form */}
@@ -123,48 +117,6 @@ export const CommandCenterView: React.FC<CommandCenterViewProps> = ({
           >
             🏛️ WazirX FIR (Benchmark)
           </button>
-        </div>
-      </div>
-
-      {/* KPI Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-[#f3efe6] border border-[#d6cfc2] rounded-lg p-4 shadow-xs">
-          <div className="flex items-center justify-between text-[#797368] text-xs font-medium">
-            <span>TOTAL EXFIL TRACED</span>
-            <span className="material-symbols-outlined text-base text-[#1b2a41]">payments</span>
-          </div>
-          <div className="text-2xl font-bold font-serif text-[#1b2a41] mt-1.5">₹14.85 Cr</div>
-          <div className="text-[11px] text-[#2c5e43] font-mono mt-1 flex items-center gap-1">
-            <span className="material-symbols-outlined text-[13px]">trending_up</span>
-            <span>+₹1.2 Cr in last 24 hours</span>
-          </div>
-        </div>
-
-        <div className="bg-[#f3efe6] border border-[#d6cfc2] rounded-lg p-4 shadow-xs">
-          <div className="flex items-center justify-between text-[#797368] text-xs font-medium">
-            <span>ATTRIBUTION SUCCESS</span>
-            <span className="material-symbols-outlined text-base text-[#2c5e43]">verified</span>
-          </div>
-          <div className="text-2xl font-bold font-serif text-[#2c5e43] mt-1.5">92.4%</div>
-          <div className="text-[11px] text-[#575249] font-mono mt-1">FIU-IND registered entities mapped</div>
-        </div>
-
-        <div className="bg-[#f3efe6] border border-[#d6cfc2] rounded-lg p-4 shadow-xs">
-          <div className="flex items-center justify-between text-[#797368] text-xs font-medium">
-            <span>AVG TRACE LATENCY</span>
-            <span className="material-symbols-outlined text-base text-[#8d4f12]">speed</span>
-          </div>
-          <div className="text-2xl font-bold font-serif text-[#1b2a41] mt-1.5">47.2 sec</div>
-          <div className="text-[11px] text-[#2c5e43] font-mono mt-1">vs 72 hours manual police trace</div>
-        </div>
-
-        <div className="bg-[#f3efe6] border border-[#d6cfc2] rounded-lg p-4 shadow-xs">
-          <div className="flex items-center justify-between text-[#797368] text-xs font-medium">
-            <span>FREEZE DIRECTIVES</span>
-            <span className="material-symbols-outlined text-base text-[#9e2a2b]">lock_clock</span>
-          </div>
-          <div className="text-2xl font-bold font-serif text-[#9e2a2b] mt-1.5">28 Orders</div>
-          <div className="text-[11px] text-[#575249] font-mono mt-1">Dispatched via SAHYOG API</div>
         </div>
       </div>
 
