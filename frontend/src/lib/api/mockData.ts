@@ -158,7 +158,6 @@ export function generateCorridorTxs(sourceAddr: string, targetAddr: string, tota
   ];
 }
 
-// Full Forensic Telemetry Heuristic Evaluation Set
 const BASE_HEURISTICS: HeuristicFinding[] = [
   {
     code: 'H1_DEPOSIT_REUSE',
@@ -202,77 +201,78 @@ const BASE_HEURISTICS: HeuristicFinding[] = [
   }
 ];
 
-// DYNAMIC TRACE GENERATOR: Handles any address or preset scenario
+// DYNAMIC TRACE GENERATOR: Complete scenario recognition & dynamic synthesis
 export function generateDynamicTrace(rawAddress: string, chain: ChainType = 'ethereum'): TraceGraphData {
   const addr = rawAddress.trim();
   const lower = addr.toLowerCase();
 
-  // Scenario 1: Mixer Pool (Tornado Cash / Lazarus Group)
-  if (lower.includes('mixer') || lower.includes('tornado') || lower.includes('9484') || lower.includes('lazarus')) {
-    const root = addr || '0x94845333028B1204Fbe14E1278Fd4Adde46B22ce';
-    const n1 = '0x3b11e299f18a24c08821049b8a31e847';
-    const n2 = '0x889a7c01e389b0991823a451e0892c90';
-    const mixerAddr = '0x12D66f22889238e0C116001D05C61A2fC990264E';
+  // 1. LAZARUS GROUP ($624M Ronin Heist)
+  if (lower === '0x098b716b8aaf21512996dc57eb0615e2383e2f96' || lower.includes('lazarus') || lower.includes('ronin') || lower.includes('0x098b')) {
+    const root = '0x098b716b8aaf21512996dc57eb0615e2383e2f96';
+    const m1 = '0x3b11e299f18a24c08821049b8a31e84700112233';
+    const m2 = '0x889a7c01e389b0991823a451e0892c90aabbccdd';
+    const mixerAddr = '0x12D66f87A04A9E220743712Ce6d9bB1B5616B8Fc';
 
     return {
-      traceId: `trace-mixer-${Date.now()}`,
+      traceId: `TRC-LAZARUS-${Date.now().toString().slice(-6)}`,
       rootAddress: root,
-      targetEntity: 'Tornado Cash (ZK Privacy Pool)',
-      confidence: 98.6,
+      targetEntity: 'OFAC Sanctioned Mixer Pool (Tornado Cash)',
+      confidence: 99.4,
       totalHops: 3,
-      totalValueStolen: '100.00 ETH (~₹2.78 Crore)',
-      timeSpan: '38 Minutes',
-      riskScore: 98,
-      typology: 'ZERO_KNOWLEDGE_MIXER_SEVERANCE',
+      totalValueStolen: '173,600.00 ETH (~$624M)',
+      timeSpan: '1h 14m',
+      riskScore: 99.8,
+      typology: 'STATE_SPONSORED_ZK_MIXER_DISSIPATION',
       trailStatus: 'LOST_TO_MIXER',
-      trailVerdict: 'Trail Lost: Stolen funds were deposited into Tornado Cash ZK-SNARK Privacy Pool. Cryptographic link is severed on-chain.',
+      trailVerdict: 'Trail Lost in Mixer: Stolen funds from Ronin Bridge exploit deposited into Tornado.Cash 100 ETH ZK pool. Cryptographic trail severed.',
       nodes: [
         {
           id: 'node-0',
           address: root,
-          label: 'Suspect Root (Lazarus Ingress)',
+          label: 'Lazarus Primary Exploit Root',
           type: 'VICTIM',
           chain: 'ethereum',
-          balance: '0.01 ETH',
-          riskScore: 95,
+          balance: '0.00 ETH',
+          riskScore: 100,
           confidence: 100,
+          entity: 'Lazarus Group (FBI Wanted)',
           txCount: 23,
           transactions: generateNodeTransactions(root, 'ethereum', 'VICTIM')
         },
         {
           id: 'node-1',
-          address: n1,
-          label: 'Peel Hop 1 (Burner Mule)',
+          address: m1,
+          label: 'Laundering Mule A (Aggregator)',
           type: 'SUSPECT_BURNER',
           chain: 'ethereum',
           balance: '0.00 ETH',
-          riskScore: 94,
-          confidence: 98,
+          riskScore: 98,
+          confidence: 99,
           txCount: 23,
-          transactions: generateNodeTransactions(n1, 'ethereum', 'SUSPECT_BURNER')
+          transactions: generateNodeTransactions(m1, 'ethereum', 'SUSPECT_BURNER')
         },
         {
           id: 'node-2',
-          address: n2,
-          label: 'Peel Hop 2 (Transit Router)',
+          address: m2,
+          label: 'Peeling Transit Node B',
           type: 'INTERMEDIARY',
           chain: 'ethereum',
           balance: '0.00 ETH',
           riskScore: 96,
-          confidence: 97,
+          confidence: 98,
           txCount: 23,
-          transactions: generateNodeTransactions(n2, 'ethereum', 'INTERMEDIARY')
+          transactions: generateNodeTransactions(m2, 'ethereum', 'INTERMEDIARY')
         },
         {
           id: 'node-3',
           address: mixerAddr,
-          label: 'Tornado Cash: 100 ETH ZK Pool',
+          label: 'Tornado.Cash 100 ETH Pool (OFAC)',
           type: 'MIXER',
           chain: 'ethereum',
-          balance: '14,280.00 ETH',
+          balance: '48,200.00 ETH',
           riskScore: 100,
-          confidence: 99.8,
-          entity: 'Tornado Cash Router (OFAC Sanctioned)',
+          confidence: 99.9,
+          entity: 'Tornado Cash ZK Pool',
           txCount: 23,
           isTerminal: true,
           terminalStatus: 'TRAIL LOST IN MIXER',
@@ -283,41 +283,134 @@ export function generateDynamicTrace(rawAddress: string, chain: ChainType = 'eth
         {
           source: 'node-0',
           target: 'node-1',
-          value: '100.00 ETH',
+          value: '173,600.00 ETH',
           currency: 'ETH',
-          txHash: '0x8a92...1c4b',
-          timestamp: '38m ago',
-          fee: '0.0021 ETH',
+          txHash: '0x8a92fe89c1042b918471c08912ba0918c7a10294b81c4e098712a091847291a1',
+          timestamp: '1h 14m ago',
+          fee: '0.042 ETH',
           chain: 'ethereum',
-          heuristic: 'Rapid automated drain from compromised vault',
+          heuristic: 'High-value malicious bridge contract drainage',
           txCount: 3,
-          individualTxs: generateCorridorTxs(root, n1, '100.00 ETH')
+          individualTxs: generateCorridorTxs(root, m1, '173,600.00 ETH')
         },
         {
           source: 'node-1',
           target: 'node-2',
-          value: '99.98 ETH',
+          value: '173,580.00 ETH',
           currency: 'ETH',
-          txHash: '0x12dc...f990',
-          timestamp: '24m ago',
-          fee: '0.0019 ETH',
+          txHash: '0x12dc889a7f0912410a82b98417c80912da091847291a12903847291a0982341a',
+          timestamp: '48m ago',
+          fee: '0.038 ETH',
           chain: 'ethereum',
-          heuristic: 'Intermediate peel transit to confuse indexers',
+          heuristic: 'Peeling dispersal into intermediate mules',
           txCount: 3,
-          individualTxs: generateCorridorTxs(n1, n2, '99.98 ETH')
+          individualTxs: generateCorridorTxs(m1, m2, '173,580.00 ETH')
         },
         {
           source: 'node-2',
           target: 'node-3',
+          value: '173,550.00 ETH',
+          currency: 'ETH',
+          txHash: '0x44ab0912e8124901c08912ba0918c7a10294b81c4e098712a091847291a12903',
+          timestamp: '22m ago',
+          fee: '0.085 ETH',
+          chain: 'ethereum',
+          heuristic: 'Contract deposit into Tornado.Cash 100 ETH ZK Pool instance',
+          txCount: 3,
+          individualTxs: generateCorridorTxs(m2, mixerAddr, '173,550.00 ETH')
+        }
+      ],
+      heuristics: [
+        ...BASE_HEURISTICS.map(h => h.code === 'H5_MIXER_HOP' ? { ...h, isTriggered: true, status: 'CRITICAL', badge: 'OFAC SANCTIONED' } : h)
+      ]
+    };
+  }
+
+  // 2. TORNADO CASH MIXER DIRECT SEARCH
+  if (lower === '0x12d66f87a04a9e220743712ce6d9bb1b5616b8fc' || lower.includes('tornado') || lower.includes('mixer') || lower.includes('12d66')) {
+    const root = '0x12d66f87a04a9e220743712ce6d9bb1b5616b8fc';
+    const d1 = '0x94845333028B1204Fbe14E1278Fd4Adde46B22ce';
+    const d2 = '0x889a7c01e389b0991823a451e0892c90aabbccdd';
+
+    return {
+      traceId: `TRC-MIXER-${Date.now().toString().slice(-6)}`,
+      rootAddress: root,
+      targetEntity: 'Tornado Cash (ZK Privacy Pool Router)',
+      confidence: 100.0,
+      totalHops: 2,
+      totalValueStolen: '100.00 ETH (~₹2.78 Crore)',
+      timeSpan: '38 Minutes',
+      riskScore: 100.0,
+      typology: 'ZERO_KNOWLEDGE_ANONYMITY_POOL',
+      trailStatus: 'LOST_TO_MIXER',
+      trailVerdict: 'Trail Lost: Target is an OFAC-sanctioned zero-knowledge mixing contract. Inbound assets lose verifiable lineage upon deposit.',
+      nodes: [
+        {
+          id: 'node-0',
+          address: d1,
+          label: 'Suspect Mule Ingress',
+          type: 'SUSPECT_BURNER',
+          chain: 'ethereum',
+          balance: '0.00 ETH',
+          riskScore: 96,
+          confidence: 100,
+          txCount: 23,
+          transactions: generateNodeTransactions(d1, 'ethereum', 'SUSPECT_BURNER')
+        },
+        {
+          id: 'node-1',
+          address: d2,
+          label: 'Intermediate Transit Router',
+          type: 'INTERMEDIARY',
+          chain: 'ethereum',
+          balance: '0.00 ETH',
+          riskScore: 98,
+          confidence: 99,
+          txCount: 23,
+          transactions: generateNodeTransactions(d2, 'ethereum', 'INTERMEDIARY')
+        },
+        {
+          id: 'node-2',
+          address: root,
+          label: 'Tornado Cash: 100 ETH ZK Contract',
+          type: 'MIXER',
+          chain: 'ethereum',
+          balance: '34,910.00 ETH',
+          riskScore: 100,
+          confidence: 100,
+          entity: 'Tornado Cash Router (OFAC Sanctioned)',
+          txCount: 23,
+          isTerminal: true,
+          terminalStatus: 'TRAIL LOST IN MIXER',
+          transactions: generateNodeTransactions(root, 'ethereum', 'MIXER')
+        }
+      ],
+      links: [
+        {
+          source: 'node-0',
+          target: 'node-1',
+          value: '100.00 ETH',
+          currency: 'ETH',
+          txHash: '0x8a92fe89c1042b918471c08912ba0918c7a10294b81c4e098712a091847291a1',
+          timestamp: '38m ago',
+          fee: '0.0021 ETH',
+          chain: 'ethereum',
+          heuristic: 'Automated wallet sweep',
+          txCount: 3,
+          individualTxs: generateCorridorTxs(d1, d2, '100.00 ETH')
+        },
+        {
+          source: 'node-1',
+          target: 'node-2',
           value: '99.95 ETH',
           currency: 'ETH',
-          txHash: '0x44ab...e812',
-          timestamp: '11m ago',
-          fee: '0.0045 ETH',
+          txHash: '0x12dc889a7f0912410a82b98417c80912da091847291a12903847291a0982341a',
+          timestamp: '19m ago',
+          fee: '0.0048 ETH',
           chain: 'ethereum',
-          heuristic: 'Contract deposit into Tornado.Cash 100 ETH Instance',
+          heuristic: 'Contract deposit into Tornado.Cash 100 ETH pool',
           txCount: 3,
-          individualTxs: generateCorridorTxs(n2, mixerAddr, '99.95 ETH')
+          individualTxs: generateCorridorTxs(d2, root, '99.95 ETH')
         }
       ],
       heuristics: [
@@ -326,62 +419,64 @@ export function generateDynamicTrace(rawAddress: string, chain: ChainType = 'eth
     };
   }
 
-  // Scenario 2: Cross-Chain Exit (Hop / Stargate Bridge)
-  if (lower.includes('bridge') || lower.includes('stargate') || lower.includes('hop')) {
-    const root = addr || '0x44abe812c30089f2a00192b0c391a082';
-    const n1 = '0x11223344556677889900aabbccddeeff00112233';
+  // 3. FTX DRAINER ($400M Unauthorized Siphon)
+  if (lower === '0x59abf3837fa962d6853b4cc0a19513aa031fd32b' || lower.includes('ftx') || lower.includes('59ab')) {
+    const root = '0x59abf3837fa962d6853b4cc0a19513aa031fd32b';
+    const dexAddr = '0x1111111254EEB25477B68fb85Ed929f73A960582';
     const bridgeAddr = '0x2F6F07CDcf3588944Bf4C42aC74ff24bF56e7590';
 
     return {
-      traceId: `trace-bridge-${Date.now()}`,
+      traceId: `TRC-FTX-${Date.now().toString().slice(-6)}`,
       rootAddress: root,
-      targetEntity: 'Stargate Finance Bridge Router',
-      confidence: 95.2,
+      targetEntity: 'FTX Drainer / Multi-Bridge Dispersion',
+      confidence: 97.5,
       totalHops: 2,
-      totalValueStolen: '25.00 ETH (~₹69.5 Lakhs)',
-      timeSpan: '22 Minutes',
-      riskScore: 86,
-      typology: 'CROSS_CHAIN_LIQUIDITY_HOP',
+      totalValueStolen: '21,155.00 ETH (~$38 Million)',
+      timeSpan: '2h 45m',
+      riskScore: 97.0,
+      typology: 'MALICIOUS_DEX_SWAP_BRIDGE_HOP',
       trailStatus: 'CROSS_CHAIN_EXIT',
-      trailVerdict: 'Trail Bridged: Funds siphoned through Stargate Finance Cross-Chain Router. Liquidity hopped from Ethereum to Arbitrum Mainnet.',
+      trailVerdict: 'Trail Bridged: Assets drained from FTX wallets were converted via 1inch DEX Aggregator and bridged cross-chain to Cosmos/Bitcoin.',
       nodes: [
         {
           id: 'node-0',
           address: root,
-          label: 'Suspect Root (Bridge Ingress)',
-          type: 'VICTIM',
+          label: 'FTX Accounts Drainer Root',
+          type: 'SUSPECT_BURNER',
           chain: 'ethereum',
-          balance: '0.02 ETH',
-          riskScore: 78,
+          balance: '1,420.00 ETH',
+          riskScore: 98,
           confidence: 100,
+          entity: 'FTX Drainer Primary',
           txCount: 23,
-          transactions: generateNodeTransactions(root, 'ethereum', 'VICTIM')
+          transactions: generateNodeTransactions(root, 'ethereum', 'SUSPECT_BURNER')
         },
         {
           id: 'node-1',
-          address: n1,
-          label: 'Intermediate Mule (Aggregator)',
+          address: dexAddr,
+          label: '1inch v5 DEX Aggregator',
           type: 'INTERMEDIARY',
           chain: 'ethereum',
-          balance: '0.01 ETH',
-          riskScore: 84,
-          confidence: 94,
+          balance: '12,980.00 ETH',
+          riskScore: 25,
+          confidence: 99,
+          entity: '1inch Protocol',
           txCount: 23,
-          transactions: generateNodeTransactions(n1, 'ethereum', 'INTERMEDIARY')
+          transactions: generateNodeTransactions(dexAddr, 'ethereum', 'INTERMEDIARY')
         },
         {
           id: 'node-2',
           address: bridgeAddr,
-          label: 'Stargate Finance Bridge Contract',
+          label: 'Stargate Bridge Router',
           type: 'BRIDGE_LOCK',
           chain: 'ethereum',
-          balance: '28,190.00 ETH',
-          riskScore: 92,
-          confidence: 99.5,
-          entity: 'Stargate Cross-Chain Pool',
+          balance: '45,210.00 ETH',
+          riskScore: 88,
+          confidence: 96,
+          entity: 'Cross-Chain Bridge Gateway',
           txCount: 23,
           isTerminal: true,
-          terminalStatus: 'CROSS-CHAIN EXIT (ARBITRUM)',
+          terminalStatus: 'CROSS-CHAIN EXIT (COSMOS/BTC)',
           transactions: generateNodeTransactions(bridgeAddr, 'ethereum', 'BRIDGE_LOCK')
         }
       ],
@@ -389,265 +484,325 @@ export function generateDynamicTrace(rawAddress: string, chain: ChainType = 'eth
         {
           source: 'node-0',
           target: 'node-1',
-          value: '25.00 ETH',
+          value: '21,155.00 ETH',
           currency: 'ETH',
-          txHash: '0x991a...7123',
-          timestamp: '22m ago',
-          fee: '0.0015 ETH',
+          txHash: '0x59abfe89c1042b918471c08912ba0918c7a10294b81c4e098712a091847291a1',
+          timestamp: '2h 45m ago',
+          fee: '0.015 ETH',
           chain: 'ethereum',
-          heuristic: 'Automated rapid transfer',
+          heuristic: 'Automated slippage-tolerant DEX liquidation swap',
           txCount: 3,
-          individualTxs: generateCorridorTxs(root, n1, '25.00 ETH')
+          individualTxs: generateCorridorTxs(root, dexAddr, '21,155.00 ETH')
         },
         {
           source: 'node-1',
           target: 'node-2',
-          value: '24.98 ETH',
+          value: '21,140.00 ETH',
           currency: 'ETH',
-          txHash: '0x44cd...991a',
-          timestamp: '14m ago',
-          fee: '0.0031 ETH',
+          txHash: '0x12dc889a7f0912410a82b98417c80912da091847291a12903847291a0982341a',
+          timestamp: '1h 12m ago',
+          fee: '0.022 ETH',
           chain: 'ethereum',
-          heuristic: 'Cross-chain lock/mint deposit',
+          heuristic: 'Cross-chain lock/mint to non-EVM ledger',
           txCount: 3,
-          individualTxs: generateCorridorTxs(n1, bridgeAddr, '24.98 ETH'),
+          individualTxs: generateCorridorTxs(dexAddr, bridgeAddr, '21,140.00 ETH'),
           isBridge: true
-        }
-      ],
-      heuristics: [
-        ...BASE_HEURISTICS.map(h => h.code === 'H3_CONTRACT_JACCARD' ? { ...h, isTriggered: true, status: 'CONFIRMED', badge: 'BRIDGE IDENTIFIED' } : h)
-      ]
-    };
-  }
-
-  // Scenario 3: Unspent Burner / Cold Mule (funds parked in unspent burner)
-  if (lower.includes('burner') || lower.includes('unspent') || lower.includes('parked')) {
-    const root = addr || '0x55aa44bb33cc22dd11ee00ff99887766';
-    const b1 = '0x99887766554433221100ffeeddccbbaa11223344';
-
-    return {
-      traceId: `trace-burner-${Date.now()}`,
-      rootAddress: root,
-      targetEntity: 'Unspent Mule Burner Wallet',
-      confidence: 96.8,
-      totalHops: 1,
-      totalValueStolen: '18.50 ETH (~₹51.4 Lakhs)',
-      timeSpan: '1 Hour 15 Mins',
-      riskScore: 89,
-      typology: 'SINGLE_HOP_MULE_RETENTION',
-      trailStatus: 'UNSPENT_BURNER',
-      trailVerdict: 'Trail Active at Burner: Funds remain unspent at suspect burner address. No further dispersion detected.',
-      nodes: [
-        {
-          id: 'node-0',
-          address: root,
-          label: 'Suspect Root (Compromised)',
-          type: 'VICTIM',
-          chain: 'ethereum',
-          balance: '0.00 ETH',
-          riskScore: 88,
-          confidence: 100,
-          txCount: 23,
-          transactions: generateNodeTransactions(root, 'ethereum', 'VICTIM')
-        },
-        {
-          id: 'node-1',
-          address: b1,
-          label: 'Mule Burner (18.50 ETH Sitting)',
-          type: 'SUSPECT_BURNER',
-          chain: 'ethereum',
-          balance: '18.50 ETH',
-          riskScore: 92,
-          confidence: 96.8,
-          entity: 'Identified Mule Account',
-          txCount: 23,
-          isTerminal: true,
-          terminalStatus: 'UNSPENT IN BURNER',
-          transactions: generateNodeTransactions(b1, 'ethereum', 'SUSPECT_BURNER')
-        }
-      ],
-      links: [
-        {
-          source: 'node-0',
-          target: 'node-1',
-          value: '18.50 ETH',
-          currency: 'ETH',
-          txHash: '0x33aa...9911',
-          timestamp: '1h 15m ago',
-          fee: '0.0014 ETH',
-          chain: 'ethereum',
-          heuristic: 'Complete balance sweep to new uninitialized address',
-          txCount: 3,
-          individualTxs: generateCorridorTxs(root, b1, '18.50 ETH')
         }
       ],
       heuristics: BASE_HEURISTICS
     };
   }
 
-  // Scenario 4: Dormant Holding (> 180 Days without outflow)
-  if (lower.includes('dormant') || lower.includes('cold') || lower.includes('vault')) {
-    const root = addr || '0x3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b';
-    const d1 = '0x7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f';
+  // 4. VITALIK BUTERIN (vitalik.eth - BENIGN VERIFIED PUBLIC)
+  if (lower === '0xd8da6bf26964af9d7eed9e03e53415d37aa96045' || lower.includes('vitalik') || lower.includes('d8da')) {
+    const root = '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045';
+    const efVault = '0xde0B295669a9FD93d5F28D9Ec85E40f4cb697BAe';
+    const gitcoin = '0x13c32e924d5571e22709230536484e56bb3fec3f';
 
     return {
-      traceId: `trace-dormant-${Date.now()}`,
+      traceId: `TRC-VITALIK-ETH`,
       rootAddress: root,
-      targetEntity: 'Dormant Cold Storage',
-      confidence: 93.4,
-      totalHops: 1,
-      totalValueStolen: '5.40 BTC (~₹3.12 Crore)',
-      timeSpan: '194 Days',
-      riskScore: 74,
-      typology: 'DORMANT_COLD_PARKING',
-      trailStatus: 'DORMANT_HOLDING',
-      trailVerdict: 'Trail Dormant: Stolen assets moved to offline cold storage wallet with zero outbound activity for >180 days.',
+      targetEntity: 'Vitalik Buterin (vitalik.eth - Verified Co-Founder)',
+      confidence: 100.0,
+      totalHops: 2,
+      totalValueStolen: '0.00 ETH (Benign / Public Figure)',
+      timeSpan: 'Continuous Active',
+      riskScore: 0.0,
+      typology: 'VERIFIED_PUBLIC_FIGURE_DONATION_HUB',
+      trailStatus: 'VERIFIED_PUBLIC',
+      trailVerdict: 'Safe / Benign Entity: Address verified as Vitalik Buterin (vitalik.eth). Outflows represent philanthropic grants and protocol stewardship.',
       nodes: [
         {
           id: 'node-0',
           address: root,
-          label: 'Suspect Root (Origin)',
+          label: 'vitalik.eth (Vitalik Buterin)',
+          type: 'BENIGN_PUBLIC',
+          chain: 'ethereum',
+          balance: '6.71 ETH',
+          riskScore: 0.0,
+          confidence: 100,
+          entity: 'Ethereum Co-Founder',
+          txCount: 23,
+          transactions: generateNodeTransactions(root, 'ethereum', 'BENIGN_PUBLIC')
+        },
+        {
+          id: 'node-1',
+          address: efVault,
+          label: 'Ethereum Foundation Treasury',
+          type: 'VERIFIED_ENTITY',
+          chain: 'ethereum',
+          balance: '284,190.00 ETH',
+          riskScore: 0.0,
+          confidence: 100,
+          entity: 'Ethereum Foundation',
+          txCount: 23,
+          transactions: generateNodeTransactions(efVault, 'ethereum', 'VERIFIED_ENTITY')
+        },
+        {
+          id: 'node-2',
+          address: gitcoin,
+          label: 'Gitcoin Community Grants Multisig',
+          type: 'VERIFIED_ENTITY',
+          chain: 'ethereum',
+          balance: '4,250.00 ETH',
+          riskScore: 0.0,
+          confidence: 100,
+          entity: 'Gitcoin Public Goods',
+          txCount: 23,
+          isTerminal: true,
+          terminalStatus: 'VERIFIED PUBLIC ENTITY',
+          transactions: generateNodeTransactions(gitcoin, 'ethereum', 'VERIFIED_ENTITY')
+        }
+      ],
+      links: [
+        {
+          source: 'node-0',
+          target: 'node-1',
+          value: '100.00 ETH',
+          currency: 'ETH',
+          txHash: '0x18fbf4798992552d03c80a474f2c5b42dfe67a1bbfcba6cacec93268f083cbab',
+          timestamp: '2d ago',
+          fee: '0.0008 ETH',
+          chain: 'ethereum',
+          heuristic: 'Ecosystem support transfer',
+          txCount: 3,
+          individualTxs: generateCorridorTxs(root, efVault, '100.00 ETH')
+        },
+        {
+          source: 'node-0',
+          target: 'node-2',
+          value: '50.00 ETH',
+          currency: 'ETH',
+          txHash: '0x77ab1289c0912ba0918c7a10294b81c4e098712a091847291a12903847291a09',
+          timestamp: '5d ago',
+          fee: '0.0011 ETH',
+          chain: 'ethereum',
+          heuristic: 'Public goods matching round donation',
+          txCount: 3,
+          individualTxs: generateCorridorTxs(root, gitcoin, '50.00 ETH')
+        }
+      ],
+      heuristics: BASE_HEURISTICS.map(h => ({ ...h, isTriggered: false, status: 'CLEAN', badge: 'VERIFIED SAFE' }))
+    };
+  }
+
+  // 5. BINANCE HOT WALLET 14
+  if (lower === '0x28c6c06298d514db089934071355e5743bf21d60' || lower.includes('binance') || lower.includes('28c6')) {
+    const root = '0x28C6c06298d514Db089934071355E5743bf21d60';
+    const dep1 = '0x991823a451e0892c90aabbccdd11223344556677';
+
+    return {
+      traceId: `TRC-BINANCE-14`,
+      rootAddress: root,
+      targetEntity: 'Binance Hot Wallet 14 (FIU-IND Reg #0089)',
+      confidence: 99.9,
+      totalHops: 1,
+      totalValueStolen: '0.00 ETH (Exchange Operating Reserves)',
+      timeSpan: 'Live Mempool',
+      riskScore: 12.0,
+      typology: 'REGULATED_EXCHANGE_HOT_WALLET',
+      trailStatus: 'VASP_DEPOSIT',
+      trailVerdict: 'Regulated VASP: High-frequency custodial hot wallet operated by Binance. Registered with FIU-IND under registration FIU-IND/VDA/2024/0089.',
+      nodes: [
+        {
+          id: 'node-0',
+          address: dep1,
+          label: 'Customer Deposit Tag (KYC Linked)',
+          type: 'EXCHANGE_DEPOSIT',
+          chain: 'ethereum',
+          balance: '0.00 ETH',
+          riskScore: 65,
+          confidence: 98,
+          txCount: 23,
+          transactions: generateNodeTransactions(dep1, 'ethereum', 'EXCHANGE_DEPOSIT')
+        },
+        {
+          id: 'node-1',
+          address: root,
+          label: 'Binance Hot Wallet 14',
+          type: 'EXCHANGE_HOT',
+          chain: 'ethereum',
+          balance: '482,910.00 ETH',
+          riskScore: 12,
+          confidence: 100,
+          entity: 'Binance Global / FIU-IND #0089',
+          txCount: 23,
+          isTerminal: true,
+          terminalStatus: 'ACTIONABLE AT VASP (BINANCE)',
+          transactions: generateNodeTransactions(root, 'ethereum', 'EXCHANGE_HOT')
+        }
+      ],
+      links: [
+        {
+          source: 'node-0',
+          target: 'node-1',
+          value: '45.00 ETH',
+          currency: 'ETH',
+          txHash: '0x28c6fe89c1042b918471c08912ba0918c7a10294b81c4e098712a091847291a1',
+          timestamp: '6m ago',
+          fee: '0.0004 ETH',
+          chain: 'ethereum',
+          heuristic: 'Automated exchange aggregation sweep',
+          txCount: 3,
+          individualTxs: generateCorridorTxs(dep1, root, '45.00 ETH')
+        }
+      ],
+      heuristics: BASE_HEURISTICS
+    };
+  }
+
+  // 6. BITCOIN CASE (Dr. Ramesh Narayan / CoinDCX)
+  if (lower.startsWith('bc1') || lower.startsWith('1') || lower.startsWith('3') || lower.includes('ramesh')) {
+    const root = addr || 'bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq';
+    const btcInter = '1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa';
+    const coindcxVault = '0xCoinDCX_Vault_01824a91';
+
+    return {
+      traceId: `TRC-BTC-${Date.now().toString().slice(-6)}`,
+      rootAddress: root,
+      targetEntity: 'CoinDCX (Neblio Technologies Pvt. Ltd.)',
+      confidence: 95.8,
+      totalHops: 2,
+      totalValueStolen: '3.45 BTC (~₹1.98 Crore)',
+      timeSpan: '1h 22m',
+      riskScore: 88.0,
+      typology: 'UTXO_CONSOLIDATION_VASP_DEPOSIT',
+      trailStatus: 'VASP_DEPOSIT',
+      trailVerdict: 'Actionable Trail: Stolen UTXOs consolidated and deposited into CoinDCX KYC customer deposit account. Ready for Section 94 BNSS freeze dispatch.',
+      nodes: [
+        {
+          id: 'node-0',
+          address: root,
+          label: 'Suspect Root (Bitcoin Drainage)',
           type: 'VICTIM',
           chain: 'bitcoin',
           balance: '0.0001 BTC',
-          riskScore: 82,
+          riskScore: 88,
           confidence: 100,
           txCount: 23,
           transactions: generateNodeTransactions(root, 'bitcoin', 'VICTIM')
         },
         {
           id: 'node-1',
-          address: d1,
-          label: 'Dormant Vault Address',
+          address: btcInter,
+          label: 'UTXO Peel Intermediary',
           type: 'INTERMEDIARY',
           chain: 'bitcoin',
-          balance: '5.40 BTC',
-          riskScore: 76,
-          confidence: 93.4,
-          entity: 'Inactive Cold Wallet',
+          balance: '0.0000 BTC',
+          riskScore: 82,
+          confidence: 96,
           txCount: 23,
-          isTerminal: true,
-          terminalStatus: 'DORMANT (>180 DAYS)',
-          transactions: generateNodeTransactions(d1, 'bitcoin', 'INTERMEDIARY')
-        }
-      ],
-      links: [
-        {
-          source: 'node-0',
-          target: 'node-1',
-          value: '5.40 BTC',
-          currency: 'BTC',
-          txHash: '0x7a8b...33ef',
-          timestamp: '194d ago',
-          fee: '0.00015 BTC',
-          chain: 'bitcoin',
-          heuristic: 'UTXO consolidation into high-security multi-sig',
-          txCount: 3,
-          individualTxs: generateCorridorTxs(root, d1, '5.40 BTC', 'bitcoin')
-        }
-      ],
-      heuristics: BASE_HEURISTICS
-    };
-  }
-
-  // Scenario 5: Burned (sent to dead address)
-  if (lower.includes('dead') || lower.includes('burn') || lower.includes('0x0000')) {
-    const root = addr || '0x66778899aabbccddeeff00112233445566778899';
-    const deadAddr = '0x000000000000000000000000000000000000dEaD';
-
-    return {
-      traceId: `trace-burned-${Date.now()}`,
-      rootAddress: root,
-      targetEntity: 'EVM Dead Address (Irretrievable)',
-      confidence: 100.0,
-      totalHops: 1,
-      totalValueStolen: '12.00 ETH (~₹33.3 Lakhs)',
-      timeSpan: '8 Minutes',
-      riskScore: 99,
-      typology: 'TOKEN_INCINERATION',
-      trailStatus: 'BURNED',
-      trailVerdict: 'Trail Destroyed: Stolen funds transferred to EVM 0x000000000000000000000000000000000000dEaD. Cryptographically unrecoverable.',
-      nodes: [
-        {
-          id: 'node-0',
-          address: root,
-          label: 'Suspect Root (Scam Contract)',
-          type: 'VICTIM',
-          chain: 'ethereum',
-          balance: '0.00 ETH',
-          riskScore: 99,
-          confidence: 100,
-          txCount: 23,
-          transactions: generateNodeTransactions(root, 'ethereum', 'VICTIM')
+          transactions: generateNodeTransactions(btcInter, 'bitcoin', 'INTERMEDIARY')
         },
         {
-          id: 'node-1',
-          address: deadAddr,
-          label: 'EVM Incinerator (0x...dEaD)',
-          type: 'BENIGN_PUBLIC',
-          chain: 'ethereum',
-          balance: '148,910.00 ETH',
-          riskScore: 100,
-          confidence: 100,
-          entity: 'Dead Burn Address',
+          id: 'node-2',
+          address: coindcxVault,
+          label: 'CoinDCX Hot Vault (FIU Reg #0002)',
+          type: 'EXCHANGE_HOT',
+          chain: 'bitcoin',
+          balance: '142.50 BTC',
+          riskScore: 12,
+          confidence: 99.5,
+          entity: 'CoinDCX (FIU-IND/VDA/2023/0002)',
           txCount: 23,
           isTerminal: true,
-          terminalStatus: 'PERMANENTLY BURNED',
-          transactions: generateNodeTransactions(deadAddr, 'ethereum', 'BENIGN_PUBLIC')
+          terminalStatus: 'ACTIONABLE AT VASP (COINDCX)',
+          transactions: generateNodeTransactions(coindcxVault, 'bitcoin', 'EXCHANGE_HOT')
         }
       ],
       links: [
         {
           source: 'node-0',
           target: 'node-1',
-          value: '12.00 ETH',
-          currency: 'ETH',
-          txHash: '0xdead...beef',
-          timestamp: '8m ago',
-          fee: '0.0009 ETH',
-          chain: 'ethereum',
-          heuristic: 'Irrevocable transfer to burn contract',
+          value: '3.45 BTC',
+          currency: 'BTC',
+          txHash: '0x7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b',
+          timestamp: '1h 22m ago',
+          fee: '0.00012 BTC',
+          chain: 'bitcoin',
+          heuristic: 'UTXO consolidation transfer',
           txCount: 3,
-          individualTxs: generateCorridorTxs(root, deadAddr, '12.00 ETH')
+          individualTxs: generateCorridorTxs(root, btcInter, '3.45 BTC', 'bitcoin')
+        },
+        {
+          source: 'node-1',
+          target: 'node-2',
+          value: '3.448 BTC',
+          currency: 'BTC',
+          txHash: '0x9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b',
+          timestamp: '34m ago',
+          fee: '0.00015 BTC',
+          chain: 'bitcoin',
+          heuristic: 'Direct transfer to CoinDCX deposit wallet',
+          txCount: 3,
+          individualTxs: generateCorridorTxs(btcInter, coindcxVault, '3.448 BTC', 'bitcoin')
         }
       ],
       heuristics: BASE_HEURISTICS
     };
   }
 
-  // DEFAULT / GENERAL ARBITRARY CASE:
-  // Dynamically generates a multi-hop trace terminating at FIU-IND registered WazirX / CoinDCX Hot Wallet
+  // 7. DEFAULT / DYNAMIC ARBITRARY ADDRESS CRAWL
+  // Generates custom, non-static topology uniquely derived from the searched address
   const root = addr || '0x71C8364...a812';
   const effectiveChain: ChainType = (root.startsWith('bc1') || root.startsWith('1') || root.startsWith('3')) ? 'bitcoin' : chain;
   const symbol = effectiveChain === 'bitcoin' ? 'BTC' : 'ETH';
 
-  // Seeded addresses from input
-  const h1 = `0x9a${root.slice(2, 6).padEnd(4, '0')}881c${root.slice(-4)}2901a1b2c3d4e5f6`;
-  const h2 = `0xb2${root.slice(2, 6).padEnd(4, '1')}11ac${root.slice(-4)}778899aabbccdde0`;
-  const depositSweep = `0x27C7${root.slice(2, 6).padEnd(4, '2')}4C33b79310C3691656A8F08`;
-  const vaspHotWallet = '0xWAZIRX_HOT_091B88102a9b';
+  // Deterministically compute custom values from address bytes
+  let seed = 0;
+  for (let i = 0; i < root.length; i++) {
+    seed = (seed * 31 + root.charCodeAt(i)) & 0xffffffff;
+  }
+  const absSeed = Math.abs(seed);
+  const stolenAmountNum = ((absSeed % 450) / 10 + 1.25).toFixed(2);
+  const hopCount = (absSeed % 3) + 2; // 2, 3, or 4 hops
+  const riskVal = 85 + (absSeed % 14);
+
+  const h1 = `0x${((absSeed * 11) % 0xffffffffffff).toString(16).padStart(12, '0')}881c${root.slice(-4)}`;
+  const h2 = `0x${((absSeed * 17) % 0xffffffffffff).toString(16).padStart(12, '1')}77ab${root.slice(-4)}`;
+  const terminalAddr = `0x${((absSeed * 29) % 0xffffffffffff).toString(16).padStart(12, '2')}99dc${root.slice(-4)}`;
 
   return {
-    traceId: `trace-dyn-${Date.now()}`,
+    traceId: `TRC-${root.slice(0, 6)}-${Date.now().toString().slice(-4)}`,
     rootAddress: root,
-    targetEntity: 'WazirX (Zanmai Labs Pvt. Ltd.)',
-    confidence: 96.4,
-    totalHops: 4,
-    totalValueStolen: `14.85 ${symbol} (~₹41.2 Lakhs)`,
-    timeSpan: '47 Minutes',
-    riskScore: 92,
-    typology: 'AUTOMATED_PEELING_VASP_SWEEP',
-    trailStatus: 'VASP_DEPOSIT',
-    trailVerdict: 'Actionable Trail: Funds consolidated into FIU-IND Registered VASP (WazirX). Ready for immediate Section 94 BNSS Emergency Freeze Notice.',
+    targetEntity: `Cluster Hop #${hopCount} (${terminalAddr.slice(0, 8)}...)`,
+    confidence: 94.2,
+    totalHops: hopCount,
+    totalValueStolen: `${stolenAmountNum} ${symbol}`,
+    timeSpan: `${15 + (absSeed % 45)} Minutes`,
+    riskScore: riskVal,
+    typology: hopCount >= 3 ? 'AUTOMATED_PEELING_LAYER' : 'RAPID_DISPERSION_HOP',
+    trailStatus: 'UNSPENT_BURNER',
+    trailVerdict: `Forensic Trail Active: Traced across ${hopCount} peeling hops from root ${root.slice(0, 10)}... Assets currently parked at burner ${terminalAddr.slice(0, 10)}...`,
     nodes: [
       {
         id: 'node-0',
         address: root,
-        label: 'Suspect Root (Initial Drain)',
+        label: `Suspect Origin (${root.slice(0, 8)}...)`,
         type: 'VICTIM',
         chain: effectiveChain,
-        balance: `0.02 ${symbol}`,
-        riskScore: 89,
+        balance: `0.005 ${symbol}`,
+        riskScore: 88,
         confidence: 100,
         txCount: 23,
         transactions: generateNodeTransactions(root, effectiveChain, 'VICTIM')
@@ -655,108 +810,81 @@ export function generateDynamicTrace(rawAddress: string, chain: ChainType = 'eth
       {
         id: 'node-1',
         address: h1,
-        label: 'Peel Hop 1 (Burner Mule)',
+        label: `Mule Transit 1 (${h1.slice(0, 8)}...)`,
         type: 'SUSPECT_BURNER',
         chain: effectiveChain,
         balance: `0.001 ${symbol}`,
         riskScore: 91,
-        confidence: 98,
+        confidence: 97,
         txCount: 23,
         transactions: generateNodeTransactions(h1, effectiveChain, 'SUSPECT_BURNER')
       },
       {
         id: 'node-2',
         address: h2,
-        label: 'Peel Hop 2 (Transit Mule)',
+        label: `Peel Layer 2 (${h2.slice(0, 8)}...)`,
         type: 'INTERMEDIARY',
         chain: effectiveChain,
-        balance: `0.002 ${symbol}`,
-        riskScore: 87,
-        confidence: 96,
+        balance: `0.000 ${symbol}`,
+        riskScore: 89,
+        confidence: 95,
         txCount: 23,
         transactions: generateNodeTransactions(h2, effectiveChain, 'INTERMEDIARY')
       },
       {
         id: 'node-3',
-        address: depositSweep,
-        label: 'WazirX KYC Deposit Address',
-        type: 'EXCHANGE_DEPOSIT',
+        address: terminalAddr,
+        label: `Terminal Burner (${terminalAddr.slice(0, 8)}...)`,
+        type: 'SUSPECT_BURNER',
         chain: effectiveChain,
-        balance: `0.00 ${symbol}`,
-        riskScore: 95,
-        confidence: 99.2,
-        entity: 'WazirX Customer Account (KYC Linked)',
-        txCount: 23,
-        transactions: generateNodeTransactions(depositSweep, effectiveChain, 'EXCHANGE_DEPOSIT')
-      },
-      {
-        id: 'node-4',
-        address: vaspHotWallet,
-        label: 'WazirX FIU Hot Wallet (091B88)',
-        type: 'EXCHANGE_HOT',
-        chain: effectiveChain,
-        balance: `1,280.45 ${symbol}`,
-        riskScore: 12,
-        confidence: 99.9,
-        entity: 'WazirX Treasury (FIU-IND Reg #0014)',
+        balance: `${stolenAmountNum} ${symbol}`,
+        riskScore: 94,
+        confidence: 96,
         txCount: 23,
         isTerminal: true,
-        terminalStatus: 'ACTIONABLE IN VASP (WAZIRX)',
-        transactions: generateNodeTransactions(vaspHotWallet, effectiveChain, 'EXCHANGE_HOT')
+        terminalStatus: 'UNSPENT IN BURNER',
+        transactions: generateNodeTransactions(terminalAddr, effectiveChain, 'SUSPECT_BURNER')
       }
     ],
     links: [
       {
         source: 'node-0',
         target: 'node-1',
-        value: `14.85 ${symbol}`,
+        value: `${stolenAmountNum} ${symbol}`,
         currency: symbol,
-        txHash: `0x8a92...${root.slice(-4)}`,
-        timestamp: '47m ago',
-        fee: `0.0021 ${symbol}`,
+        txHash: `0x${root.slice(2, 8)}fe${h1.slice(2, 8)}918471c08912ba0918c7a102`,
+        timestamp: '32m ago',
+        fee: `0.0019 ${symbol}`,
         chain: effectiveChain,
-        heuristic: 'Phishing signature drain transaction',
+        heuristic: 'Initial wallet balance drain',
         txCount: 3,
-        individualTxs: generateCorridorTxs(root, h1, `14.85 ${symbol}`, effectiveChain)
+        individualTxs: generateCorridorTxs(root, h1, `${stolenAmountNum} ${symbol}`, effectiveChain)
       },
       {
         source: 'node-1',
         target: 'node-2',
-        value: `14.82 ${symbol}`,
+        value: `${(parseFloat(stolenAmountNum) * 0.98).toFixed(2)} ${symbol}`,
         currency: symbol,
-        txHash: '0x12dc...f990',
-        timestamp: '32m ago',
-        fee: `0.0019 ${symbol}`,
+        txHash: `0x${h1.slice(2, 8)}aa${h2.slice(2, 8)}918471c08912ba0918c7a102`,
+        timestamp: '18m ago',
+        fee: `0.0015 ${symbol}`,
         chain: effectiveChain,
         heuristic: 'Peeling chain dispersion',
         txCount: 3,
-        individualTxs: generateCorridorTxs(h1, h2, `14.82 ${symbol}`, effectiveChain)
+        individualTxs: generateCorridorTxs(h1, h2, `${(parseFloat(stolenAmountNum) * 0.98).toFixed(2)} ${symbol}`, effectiveChain)
       },
       {
         source: 'node-2',
         target: 'node-3',
-        value: `14.80 ${symbol}`,
+        value: `${(parseFloat(stolenAmountNum) * 0.97).toFixed(2)} ${symbol}`,
         currency: symbol,
-        txHash: '0x44ab...e812',
-        timestamp: '19m ago',
-        fee: `0.0018 ${symbol}`,
+        txHash: `0x${h2.slice(2, 8)}cc${terminalAddr.slice(2, 8)}918471c08912ba0918c7a102`,
+        timestamp: '7m ago',
+        fee: `0.0012 ${symbol}`,
         chain: effectiveChain,
-        heuristic: 'Direct transfer to newly generated VASP deposit tag',
+        heuristic: 'Consolidation into holding burner',
         txCount: 3,
-        individualTxs: generateCorridorTxs(h2, depositSweep, `14.80 ${symbol}`, effectiveChain)
-      },
-      {
-        source: 'node-3',
-        target: 'node-4',
-        value: `14.78 ${symbol}`,
-        currency: symbol,
-        txHash: '0x991a...7123',
-        timestamp: '6m ago',
-        fee: `0.0005 ${symbol}`,
-        chain: effectiveChain,
-        heuristic: 'Automated high-frequency exchange hot wallet aggregation sweep',
-        txCount: 3,
-        individualTxs: generateCorridorTxs(depositSweep, vaspHotWallet, `14.78 ${symbol}`, effectiveChain)
+        individualTxs: generateCorridorTxs(h2, terminalAddr, `${(parseFloat(stolenAmountNum) * 0.97).toFixed(2)} ${symbol}`, effectiveChain)
       }
     ],
     heuristics: BASE_HEURISTICS
@@ -788,13 +916,13 @@ export const MOCK_COMPLAINTS: Complaint[] = [
     firNumber: 'FIR-188/2026',
     policeStation: 'Bandra Kurla Cyber Police Station',
     victimName: 'Sunil Mehta (HNI Account)',
-    suspectAddress: '0x94845333028B1204Fbe14E1278Fd4Adde46B22ce',
+    suspectAddress: '0x098b716b8aaf21512996dc57eb0615e2383e2f96',
     chain: 'ethereum',
-    amount: '100.00 ETH (~₹2.78 Crore)',
+    amount: '173,600.00 ETH (~$624 Million)',
     reportedAt: '42m ago',
     status: 'TRACING',
     targetVASP: 'Tornado Cash (ZK Pool)',
-    riskScore: 0.98,
+    riskScore: 0.99,
     ioName: 'ACP Priyadarshini Rao',
     zone: 'Zone 8 Cyber Branch, Mumbai'
   },

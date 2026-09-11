@@ -9,18 +9,29 @@ interface GraphExplorerViewProps {
   traceData: TraceGraphData;
   onGenerateDossier: () => void;
   onEmergencyFreeze: () => void;
+  onTraceWallet?: (address: string) => void;
 }
 
 export const GraphExplorerView: React.FC<GraphExplorerViewProps> = ({
   traceData,
   onGenerateDossier,
   onEmergencyFreeze,
+  onTraceWallet,
 }) => {
   const [selectedNode, setSelectedNode] = useState<GraphNode | null>(traceData.nodes[1] || traceData.nodes[0] || null);
   const [selectedLink, setSelectedLink] = useState<GraphLink | null>(null);
   const [copiedText, setCopiedText] = useState<string | null>(null);
   const [txFilter, setTxFilter] = useState<'ALL' | 'IN' | 'OUT'>('ALL');
   const [isExportingPdf, setIsExportingPdf] = useState(false);
+  const [quickInput, setQuickInput] = useState('');
+
+  // Keep selectedNode synchronized with traceData changes
+  React.useEffect(() => {
+    if (traceData && traceData.nodes && traceData.nodes.length > 0) {
+      setSelectedNode(traceData.nodes[1] || traceData.nodes[0] || null);
+      setSelectedLink(null);
+    }
+  }, [traceData]);
 
   const handleQuickExportPdf = async () => {
     setIsExportingPdf(true);
@@ -254,24 +265,86 @@ export const GraphExplorerView: React.FC<GraphExplorerViewProps> = ({
     <div className="flex-1 flex overflow-hidden h-full relative">
       {/* LEFT: GRAPH CANVAS VIEWPORT */}
       <div className="flex-1 flex flex-col h-full bg-[#e8e3d8] overflow-hidden relative">
-        {/* Top Floating Control Pill */}
-        <div className="absolute top-4 left-4 z-20 bg-[#f3efe6]/95 backdrop-blur-sm border border-[#d6cfc2] rounded-lg px-4 py-2 shadow-xs flex items-center gap-4 text-xs font-mono">
-          <div className="flex items-center gap-1.5 font-bold text-[#1b2a41]">
-            <span className="material-symbols-outlined text-sm text-[#2c5e43]">schema</span>
-            <span>TRACE: {traceData.traceId}</span>
+        {/* Top Floating Control Pill & Quick Switcher */}
+        <div className="absolute top-4 left-4 right-4 z-20 flex flex-wrap items-center justify-between gap-3 pointer-events-none">
+          <div className="bg-[#f3efe6]/95 backdrop-blur-sm border border-[#d6cfc2] rounded-lg px-4 py-2 shadow-xs flex items-center gap-3 text-xs font-mono pointer-events-auto">
+            <div className="flex items-center gap-1.5 font-bold text-[#1b2a41]">
+              <span className="material-symbols-outlined text-sm text-[#2c5e43]">schema</span>
+              <span>TRACE: {traceData.traceId}</span>
+            </div>
+            <div className="h-3 w-px bg-[#d6cfc2]"></div>
+            <div className="text-[#575249]">
+              ROOT: <span className="text-[#21201d] font-bold">{traceData.rootAddress.slice(0, 10)}...</span>
+            </div>
+            <div className="h-3 w-px bg-[#d6cfc2]"></div>
+            <div className="text-[#575249]">
+              FLOW: <span className="text-[#1b2a41] font-bold">{traceData.totalValueStolen}</span>
+            </div>
+            <div className="h-3 w-px bg-[#d6cfc2]"></div>
+            <div className="text-[#2c5e43] font-bold">
+              {traceData.nodes.length} NODES ({traceData.links.length} CORRIDORS)
+            </div>
           </div>
-          <div className="h-3 w-px bg-[#d6cfc2]"></div>
-          <div className="text-[#575249]">
-            ROOT: <span className="text-[#21201d] font-bold">{traceData.rootAddress.slice(0, 8)}...</span>
-          </div>
-          <div className="h-3 w-px bg-[#d6cfc2]"></div>
-          <div className="text-[#575249]">
-            FLOW: <span className="text-[#1b2a41] font-bold">{traceData.totalValueStolen}</span>
-          </div>
-          <div className="h-3 w-px bg-[#d6cfc2]"></div>
-          <div className="text-[#2c5e43] font-bold">
-            {traceData.nodes.length} CLUSTERED NODES ({traceData.links.length} FLOWS)
-          </div>
+
+          {/* Quick Trace Presets & Search Input */}
+          {onTraceWallet && (
+            <div className="bg-[#f3efe6]/95 backdrop-blur-sm border border-[#d6cfc2] rounded-lg px-3 py-1.5 shadow-xs flex items-center gap-2 pointer-events-auto text-xs font-mono">
+              <span className="text-[10px] text-[#797368] font-bold uppercase">PRESETS:</span>
+              <button
+                onClick={() => onTraceWallet('0x098b716b8aaf21512996dc57eb0615e2383e2f96')}
+                className="px-2 py-0.5 rounded bg-[#fee2e2] hover:bg-[#fecaca] text-[#991b1b] border border-[#fca5a5] font-bold text-[10px] transition-colors"
+                title="Lazarus Ronin $624M Heist"
+              >
+                🚨 Lazarus
+              </button>
+              <button
+                onClick={() => onTraceWallet('0x12d66f87a04a9e220743712ce6d9bb1b5616b8fc')}
+                className="px-2 py-0.5 rounded bg-[#fee2e2] hover:bg-[#fecaca] text-[#9e2a2b] border border-[#fca5a5] text-[10px] transition-colors"
+                title="Tornado Cash ZK Mixer"
+              >
+                ⚠️ Tornado
+              </button>
+              <button
+                onClick={() => onTraceWallet('0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045')}
+                className="px-2 py-0.5 rounded bg-[#e0f2fe] hover:bg-[#bae6fd] text-[#0369a1] border border-[#bae6fd] text-[10px] transition-colors"
+                title="Vitalik Buterin (vitalik.eth)"
+              >
+                ✓ Vitalik
+              </button>
+              <button
+                onClick={() => onTraceWallet('0x28C6c06298d514Db089934071355E5743bf21d60')}
+                className="px-2 py-0.5 rounded bg-[#ece7dc] hover:bg-[#ded7c8] text-[#1b2a41] border border-[#d6cfc2] text-[10px] transition-colors"
+                title="Binance Hot 14"
+              >
+                🏦 Binance
+              </button>
+              <div className="h-3 w-px bg-[#d6cfc2] mx-1"></div>
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  if (quickInput.trim()) {
+                    onTraceWallet(quickInput.trim());
+                    setQuickInput('');
+                  }
+                }}
+                className="flex items-center gap-1"
+              >
+                <input
+                  type="text"
+                  value={quickInput}
+                  onChange={(e) => setQuickInput(e.target.value)}
+                  placeholder="Trace 0x... / bc1..."
+                  className="bg-[#ece7dc] border border-[#d6cfc2] px-2 py-1 rounded text-[11px] font-mono text-[#21201d] w-40 placeholder:text-[#888173] focus:outline-none focus:border-[#1b2a41]"
+                />
+                <button
+                  type="submit"
+                  className="px-2 py-1 bg-[#1b2a41] text-[#fff8f0] rounded text-[10px] font-bold hover:bg-[#111e30] transition-colors uppercase"
+                >
+                  Trace
+                </button>
+              </form>
+            </div>
+          )}
         </div>
 
         {/* D3 SVG Visualizer */}

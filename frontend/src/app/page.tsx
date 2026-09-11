@@ -21,32 +21,48 @@ export default function Home() {
   const [searchQuery, setSearchQuery] = useState('');
   const [showFreezeModal, setShowFreezeModal] = useState(false);
   const [freezeStatus, setFreezeStatus] = useState<'idle' | 'dispatching' | 'success'>('idle');
+  const [isTracing, setIsTracing] = useState(false);
 
   useEffect(() => {
     // Initial fetch from our API client
     apiClient.getComplaints().then(setComplaints);
-    apiClient.getTrace('0x742d35Cc6634C0532925a3b844Bc454e4438f44e').then(setTraceData);
+    apiClient.getTrace('0x098b716b8aaf21512996dc57eb0615e2383e2f96').then(setTraceData);
     apiClient.getVasps().then(setVasps);
-    apiClient.getDossier('CC-MUM-2026-0941').then(setDossier);
+    apiClient.getDossier('NCRP-2026-DEL-89210').then(setDossier);
   }, []);
 
   const handleSearch = async () => {
     if (!searchQuery.trim()) return;
-    const res = await apiClient.getTrace(searchQuery.trim());
-    setTraceData(res);
-    setActiveTab('explorer');
+    setIsTracing(true);
+    try {
+      const res = await apiClient.getTrace(searchQuery.trim());
+      setTraceData(res);
+      setActiveTab('explorer');
+    } finally {
+      setIsTracing(false);
+    }
   };
 
   const handleSelectComplaint = async (complaint: Complaint) => {
-    const res = await apiClient.getTrace(complaint.suspectAddress, complaint.chain);
-    setTraceData(res);
-    setActiveTab('explorer');
+    setIsTracing(true);
+    try {
+      const res = await apiClient.getTrace(complaint.suspectAddress, complaint.chain);
+      setTraceData(res);
+      setActiveTab('explorer');
+    } finally {
+      setIsTracing(false);
+    }
   };
 
   const handleTraceWallet = async (address: string) => {
-    const res = await apiClient.getTrace(address);
-    setTraceData(res);
-    setActiveTab('explorer');
+    setIsTracing(true);
+    try {
+      const res = await apiClient.getTrace(address);
+      setTraceData(res);
+      setActiveTab('explorer');
+    } finally {
+      setIsTracing(false);
+    }
   };
 
   const handleGenerateDossier = async () => {
@@ -118,6 +134,7 @@ export default function Home() {
               traceData={traceData}
               onGenerateDossier={handleGenerateDossier}
               onEmergencyFreeze={handleEmergencyFreezeTrigger}
+              onTraceWallet={handleTraceWallet}
             />
           )}
 
@@ -211,6 +228,26 @@ export default function Home() {
                   </>
                 )}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Live Mempool Crawler Overlay */}
+      {isTracing && (
+        <div className="fixed inset-0 bg-[#090d16]/70 backdrop-blur-xs flex items-center justify-center z-50 p-4">
+          <div className="bg-[#f3efe6] border border-[#d6cfc2] rounded-xl max-w-sm w-full p-6 shadow-2xl text-center space-y-4">
+            <div className="w-12 h-12 rounded-full bg-[#1b2a41] text-[#fff8f0] mx-auto flex items-center justify-center animate-spin">
+              <span className="material-symbols-outlined text-2xl">autorenew</span>
+            </div>
+            <div>
+              <h3 className="text-base font-bold font-serif text-[#1b2a41]">Forensic Mempool Indexing</h3>
+              <p className="text-xs text-[#575249] mt-1 font-mono">
+                Crawling counterparty transactions, classifying clusters, and resolving legal entities...
+              </p>
+            </div>
+            <div className="text-[10px] font-mono text-[#2c5e43] bg-[#e2ebd9] border border-[#bdd6bc] py-1 px-2.5 rounded inline-block font-semibold">
+              LIVE BFS HOP RECURSION ACTIVE
             </div>
           </div>
         </div>
