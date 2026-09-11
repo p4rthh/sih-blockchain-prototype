@@ -350,7 +350,7 @@ export const D3GraphVisualizer: React.FC<D3GraphVisualizerProps> = ({
       .attr('y', 34)
       .attr('text-anchor', 'middle')
       .attr('font-size', '11px')
-      .attr('font-family', 'Source Sans 3, sans-serif')
+      .attr('font-family', 'Inter, system-ui, sans-serif')
       .attr('font-weight', 'bold')
       .attr('fill', '#21201d')
       .text((d) => d.label);

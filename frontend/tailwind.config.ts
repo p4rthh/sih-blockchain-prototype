@@ -50,9 +50,9 @@ const config: Config = {
         "badge-red-border": "#ebb6b4",
       },
       fontFamily: {
-        sans: ["'Source Sans 3'", "sans-serif"],
-        display: ["Newsreader", "serif"],
-        serif: ["Newsreader", "serif"],
+        sans: ["'Inter'", "-apple-system", "BlinkMacSystemFont", "'Segoe UI'", "Roboto", "sans-serif"],
+        display: ["'Plus Jakarta Sans'", "'Inter'", "-apple-system", "sans-serif"],
+        serif: ["'Plus Jakarta Sans'", "'Inter'", "-apple-system", "sans-serif"],
         mono: ["'JetBrains Mono'", "monospace"],
       },
       borderRadius: {
