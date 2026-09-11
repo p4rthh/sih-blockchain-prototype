@@ -19,8 +19,6 @@ export default function Home() {
   const [vasps, setVasps] = useState<VASPRegistryEntry[]>([]);
   const [dossier, setDossier] = useState<CourtDossier | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [showFreezeModal, setShowFreezeModal] = useState(false);
-  const [freezeStatus, setFreezeStatus] = useState<'idle' | 'dispatching' | 'success'>('idle');
   const [isTracing, setIsTracing] = useState(false);
 
   useEffect(() => {
@@ -78,21 +76,6 @@ export default function Home() {
     setActiveTab('dossier');
   };
 
-  const handleEmergencyFreezeTrigger = () => {
-    setShowFreezeModal(true);
-    setFreezeStatus('idle');
-  };
-
-  const confirmEmergencyFreeze = async () => {
-    setFreezeStatus('dispatching');
-    await apiClient.dispatchFreeze('CC-MUM-2026-0941', 'vasp-wazirx');
-    setFreezeStatus('success');
-    setTimeout(() => {
-      setShowFreezeModal(false);
-      setActiveTab('dossier');
-    }, 1500);
-  };
-
   return (
     <div className="bg-[#ede8de] text-[#21201d] h-screen w-screen overflow-hidden flex flex-col font-sans selection:bg-[#d6cfc2]">
       {/* Persistent Top Navigation Bar */}
@@ -101,7 +84,6 @@ export default function Home() {
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
         onSearch={handleSearch}
-        onEmergencyFreeze={handleEmergencyFreezeTrigger}
       />
 
       {/* Main Structural Chassis */}
@@ -133,7 +115,6 @@ export default function Home() {
             <GraphExplorerView
               traceData={traceData}
               onGenerateDossier={handleGenerateDossier}
-              onEmergencyFreeze={handleEmergencyFreezeTrigger}
               onTraceWallet={handleTraceWallet}
             />
           )}
@@ -161,77 +142,6 @@ export default function Home() {
           )}
         </main>
       </div>
-
-      {/* Emergency Freeze Modal */}
-      {showFreezeModal && (
-        <div className="fixed inset-0 bg-[#090d16]/60 backdrop-blur-xs flex items-center justify-center z-50 p-4">
-          <div className="bg-[#f3efe6] border border-[#d6cfc2] rounded-xl max-w-lg w-full p-6 space-y-4 shadow-xl">
-            <div className="flex items-center gap-3 border-b border-[#d6cfc2] pb-4">
-              <div className="w-10 h-10 rounded-full bg-[#f8e3e1] border border-[#ebb6b4] flex items-center justify-center text-[#9e2a2b]">
-                <span className="material-symbols-outlined text-2xl">gavel</span>
-              </div>
-              <div>
-                <h3 className="text-lg font-bold font-serif text-[#1b2a41]">
-                  Emergency Freezing Order Dispatch
-                </h3>
-                <p className="text-xs text-[#575249]">
-                  Section 94 BNSS, 2023 / Section 91 CrPC Statutory Directive
-                </p>
-              </div>
-            </div>
-
-            <div className="bg-[#ece7dc] p-3 rounded-lg border border-[#d6cfc2] text-xs font-mono space-y-1.5 text-[#21201d]">
-              <div className="flex justify-between">
-                <span className="text-[#797368]">TARGET ENTITY:</span>
-                <span className="font-bold text-[#1b2a41]">Zanmai Labs (WazirX)</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-[#797368]">TARGET DEPOSIT:</span>
-                <span className="font-bold text-[#9e2a2b]">0x99fe...a302</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-[#797368]">EXFIL AMOUNT:</span>
-                <span className="font-bold">41,200.54 USDT (₹34.8 Lakhs)</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-[#797368]">DISPATCH ROUTE:</span>
-                <span className="text-[#2c5e43] font-bold">SAHYOG LEO COMPLIANCE API</span>
-              </div>
-            </div>
-
-            {freezeStatus === 'success' && (
-              <div className="p-3 bg-[#e2ebd9] border border-[#bdd6bc] rounded-lg text-xs font-mono text-[#214a34] flex items-center gap-2">
-                <span className="material-symbols-outlined text-sm text-[#2c5e43]">check_circle</span>
-                <span>Direct Legal Notice Issued! Transferred to Dossier...</span>
-              </div>
-            )}
-
-            <div className="flex items-center justify-end gap-3 pt-2">
-              <button
-                disabled={freezeStatus === 'dispatching'}
-                onClick={() => setShowFreezeModal(false)}
-                className="px-4 py-2 rounded text-xs font-medium text-[#575249] hover:bg-[#eae5db] active:translate-y-px transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Cancel
-              </button>
-              <button
-                disabled={freezeStatus === 'dispatching'}
-                onClick={confirmEmergencyFreeze}
-                className="px-5 py-2 rounded bg-[#9e2a2b] hover:bg-[#832122] active:translate-y-px text-[#fff8f0] text-xs font-bold font-mono uppercase tracking-wide transition-colors flex items-center gap-1.5 shadow-xs disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {freezeStatus === 'dispatching' ? (
-                  <span>Signing ECDSA Token...</span>
-                ) : (
-                  <>
-                    <span className="material-symbols-outlined text-sm">lock_clock</span>
-                    <span>Confirm &amp; Transmit Notice</span>
-                  </>
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Live Mempool Crawler Overlay */}
       {isTracing && (

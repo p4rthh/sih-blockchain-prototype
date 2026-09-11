@@ -8,14 +8,12 @@ import { apiClient } from '../../lib/api/client';
 interface GraphExplorerViewProps {
   traceData: TraceGraphData;
   onGenerateDossier: () => void;
-  onEmergencyFreeze: () => void;
   onTraceWallet?: (address: string) => void;
 }
 
 export const GraphExplorerView: React.FC<GraphExplorerViewProps> = ({
   traceData,
   onGenerateDossier,
-  onEmergencyFreeze,
   onTraceWallet,
 }) => {
   const [selectedNode, setSelectedNode] = useState<GraphNode | null>(traceData.nodes[1] || traceData.nodes[0] || null);
@@ -303,28 +301,28 @@ export const GraphExplorerView: React.FC<GraphExplorerViewProps> = ({
                 className="px-2 py-0.5 rounded bg-[#fee2e2] hover:bg-[#fecaca] text-[#991b1b] border border-[#fca5a5] font-bold text-[10px] transition-colors"
                 title="Lazarus Ronin $624M Heist"
               >
-                🚨 Lazarus
+                Lazarus
               </button>
               <button
                 onClick={() => onTraceWallet('0x12d66f87a04a9e220743712ce6d9bb1b5616b8fc')}
                 className="px-2 py-0.5 rounded bg-[#fee2e2] hover:bg-[#fecaca] text-[#9e2a2b] border border-[#fca5a5] text-[10px] transition-colors"
                 title="Tornado Cash ZK Mixer"
               >
-                ⚠️ Tornado
+                Tornado
               </button>
               <button
                 onClick={() => onTraceWallet('0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045')}
                 className="px-2 py-0.5 rounded bg-[#e0f2fe] hover:bg-[#bae6fd] text-[#0369a1] border border-[#bae6fd] text-[10px] transition-colors"
                 title="Vitalik Buterin (vitalik.eth)"
               >
-                ✓ Vitalik
+                Vitalik
               </button>
               <button
                 onClick={() => onTraceWallet('0x28C6c06298d514Db089934071355E5743bf21d60')}
                 className="px-2 py-0.5 rounded bg-[#ece7dc] hover:bg-[#ded7c8] text-[#1b2a41] border border-[#d6cfc2] text-[10px] transition-colors"
                 title="Binance Hot 14"
               >
-                🏦 Binance
+                Binance
               </button>
               <div className="h-3 w-px bg-[#d6cfc2] mx-1"></div>
               <form
@@ -947,13 +945,6 @@ export const GraphExplorerView: React.FC<GraphExplorerViewProps> = ({
             <span>{isExportingPdf ? 'Compiling Sealed PDF...' : 'Quick Export PDF (Sec 63 BSA)'}</span>
           </button>
 
-          <button
-            onClick={onEmergencyFreeze}
-            className="w-full bg-[#9e2a2b] hover:bg-[#832122] active:translate-y-px text-[#fff8f0] font-semibold text-xs py-2 px-3 rounded-lg transition-colors flex items-center justify-center space-x-1.5 shadow-xs uppercase tracking-wide font-mono"
-          >
-            <span className="material-symbols-outlined text-[15px]">lock_reset</span>
-            <span>Issue Sec 94 Freezing Notice</span>
-          </button>
         </div>
       </aside>
     </div>

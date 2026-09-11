@@ -7,7 +7,6 @@ interface HeaderProps {
   searchQuery: string;
   setSearchQuery: (query: string) => void;
   onSearch: () => void;
-  onEmergencyFreeze: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -15,7 +14,6 @@ export const Header: React.FC<HeaderProps> = ({
   searchQuery,
   setSearchQuery,
   onSearch,
-  onEmergencyFreeze,
 }) => {
   return (
     <header className="h-14 px-5 bg-[#f3efe6] border-b border-[#d6cfc2] fixed top-0 left-0 right-0 z-50 flex items-center justify-between shadow-xs">
@@ -69,27 +67,6 @@ export const Header: React.FC<HeaderProps> = ({
           <span className="material-symbols-outlined text-[15px] text-[#575249]">swap_horiz</span>
           <span>SWITCH CASE</span>
         </button>
-
-        <button
-          onClick={onEmergencyFreeze}
-          className="flex items-center space-x-1.5 px-3.5 py-1.5 bg-[#9e2a2b] text-[#fff8f0] rounded text-xs font-semibold hover:bg-[#832122] active:translate-y-px transition-colors shadow-xs"
-        >
-          <span className="material-symbols-outlined text-[15px]">gavel</span>
-          <span className="tracking-wide uppercase">EMERGENCY FREEZE</span>
-        </button>
-
-        <div className="h-5 w-px bg-[#d6cfc2] mx-1"></div>
-
-        {/* LEO Profile */}
-        <div className="flex items-center space-x-2 pl-1">
-          <div className="w-8 h-8 rounded-full bg-[#1b2a41] text-[#ede8de] border border-[#d6cfc2] flex items-center justify-center font-mono font-bold text-xs">
-            RS
-          </div>
-          <div className="hidden md:block text-left leading-tight">
-            <p className="text-xs font-semibold text-[#1b2a41]">Insp. R. Sharma</p>
-            <p className="text-[10px] text-[#575249] font-mono">CYBER UNIT 47-B</p>
-          </div>
-        </div>
       </div>
     </header>
   );

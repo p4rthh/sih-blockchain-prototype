@@ -336,13 +336,7 @@ export const D3GraphVisualizer: React.FC<D3GraphVisualizerProps> = ({
       .attr('font-size', '11px')
       .attr('font-family', 'JetBrains Mono, monospace')
       .attr('font-weight', 'bold')
-      .text((d, i) => {
-        if (isExchangeNode(d)) return '🏛';
-        if (d.type === 'VERIFIED_ENTITY') return '✓';
-        if (d.type === 'SMART_CONTRACT') return '⚙';
-        if (d.type === 'MIXER') return '⚡';
-        return `#${i}`;
-      });
+      .text((d, i) => `#${i}`);
 
     // Node text label below
     node
