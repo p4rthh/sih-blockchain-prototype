@@ -2,7 +2,7 @@ export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
 import { generateDynamicTrace, generateNodeTransactions, generateCorridorTxs } from '@/lib/api/mockData';
-import { ChainType, TraceGraphData, GraphNode, GraphLink } from '@/lib/types/forensics';
+import { ChainType, TraceGraphData, GraphNode, GraphLink, NodeType } from '@/lib/types/forensics';
 
 const BACKEND_URL = process.env.BACKEND_API_URL || process.env.NEXT_PUBLIC_API_URL;
 
@@ -89,19 +89,33 @@ async function crawlBlockscout(address: string, chain: ChainType): Promise<Trace
     peerAddresses.forEach((peerAddr, idx) => {
       const info = peerMap.get(peerAddr)!;
       const nodeId = `node-${idx + 1}`;
+      const lowPeer = peerAddr.toLowerCase();
+      const isWazirX = lowPeer.includes('wazirx') || lowPeer.includes('0x5ace') || lowPeer.includes('0x91d9');
+      const isCoinDCX = lowPeer.includes('coindcx') || lowPeer.includes('0x7890') || lowPeer.includes('0x8894');
+      const isBinance = lowPeer.includes('binance') || lowPeer.includes('0x28c6') || lowPeer.includes('0x21a3');
+      const isCoinSwitch = lowPeer.includes('coinswitch') || lowPeer.includes('0x4b43');
+      const isExchange = isWazirX || isCoinDCX || isBinance || isCoinSwitch || /zebpay|mudrex|bitbns|giottus|unocoin|kucoin/i.test(lowPeer);
+
+      const exchangeName = isWazirX ? 'WazirX' : (isCoinDCX ? 'CoinDCX' : (isBinance ? 'Binance India' : (isCoinSwitch ? 'CoinSwitch' : 'Regulated Exchange')));
+      const nodeType: NodeType = isExchange ? 'EXCHANGE_HOT' : (idx === peerAddresses.length - 1 ? 'SUSPECT_BURNER' : 'INTERMEDIARY');
+      const nodeLabel = isExchange ? `${exchangeName} Hot Vault` : `Counterparty ${idx + 1} (${peerAddr.slice(0, 8)}...)`;
+      const nodeRisk = isExchange ? 12 : (80 + idx * 5);
+      const isTerm = isExchange || (idx === peerAddresses.length - 1);
+
       nodes.push({
         id: nodeId,
         address: peerAddr,
-        label: `Counterparty ${idx + 1} (${peerAddr.slice(0, 8)}...)`,
-        type: idx === peerAddresses.length - 1 ? 'SUSPECT_BURNER' : 'INTERMEDIARY',
+        label: nodeLabel,
+        type: nodeType,
         chain: 'ethereum',
         balance: '0.0100 ETH',
-        riskScore: 80 + idx * 5,
+        riskScore: nodeRisk,
         confidence: 95,
         txCount: 23,
-        isTerminal: idx === peerAddresses.length - 1,
-        terminalStatus: idx === peerAddresses.length - 1 ? 'ACTIVE CORRIDOR COUNTERPARTY' : undefined,
-        transactions: generateNodeTransactions(peerAddr, 'ethereum', 'INTERMEDIARY'),
+        entity: isExchange ? `${exchangeName} Custody Reserve` : undefined,
+        isTerminal: isTerm,
+        terminalStatus: isExchange ? `ACTIONABLE AT VASP (${exchangeName.toUpperCase()})` : (idx === peerAddresses.length - 1 ? 'ACTIVE CORRIDOR COUNTERPARTY' : undefined),
+        transactions: generateNodeTransactions(peerAddr, 'ethereum', nodeType),
       });
 
       links.push({

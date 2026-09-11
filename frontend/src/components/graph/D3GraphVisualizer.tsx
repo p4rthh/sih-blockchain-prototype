@@ -267,11 +267,37 @@ export const D3GraphVisualizer: React.FC<D3GraphVisualizerProps> = ({
       .attr('stroke-width', (d) => (d.id === selectedNode?.id ? 3 : 1.5))
       .attr('stroke-dasharray', (d) => (d.type === 'BRIDGE_LOCK' ? '4,3' : 'none'));
 
+    // Helper to identify exchange / VASP nodes
+    const isExchangeNode = (d: GraphNode): boolean => {
+      if (d.type === 'EXCHANGE_HOT' || d.type === 'EXCHANGE_DEPOSIT') return true;
+      const text = `${d.label || ''} ${d.entity || ''} ${d.address || ''} ${d.clusterId || ''}`.toLowerCase();
+      return (
+        text.includes('wazirx') ||
+        text.includes('coindcx') ||
+        text.includes('coinswitch') ||
+        text.includes('zebpay') ||
+        text.includes('mudrex') ||
+        text.includes('bitbns') ||
+        text.includes('giottus') ||
+        text.includes('unocoin') ||
+        text.includes('binance') ||
+        text.includes('kucoin') ||
+        text.includes('vasp') ||
+        text.includes('deposit vault') ||
+        text.includes('hot vault') ||
+        text.includes('hot wallet')
+      );
+    };
+
     // Node main circle
     node
       .append('circle')
       .attr('r', 18)
       .attr('fill', (d) => {
+        // Guarantee exchange hot wallets and deposit vaults are never shaded brown
+        if (isExchangeNode(d)) {
+          return d.type === 'EXCHANGE_DEPOSIT' ? '#15803d' : '#1e4430';
+        }
         switch (d.type) {
           case 'VERIFIED_ENTITY':
           case 'BENIGN_PUBLIC':
@@ -290,6 +316,8 @@ export const D3GraphVisualizer: React.FC<D3GraphVisualizerProps> = ({
             return '#1b2a41';
           case 'BRIDGE_MINT':
             return '#b58500';
+          case 'EXCHANGE_DEPOSIT':
+            return '#15803d';
           case 'EXCHANGE_HOT':
             return '#1e4430';
           default:
@@ -309,6 +337,7 @@ export const D3GraphVisualizer: React.FC<D3GraphVisualizerProps> = ({
       .attr('font-family', 'JetBrains Mono, monospace')
       .attr('font-weight', 'bold')
       .text((d, i) => {
+        if (isExchangeNode(d)) return '🏛';
         if (d.type === 'VERIFIED_ENTITY') return '✓';
         if (d.type === 'SMART_CONTRACT') return '⚙';
         if (d.type === 'MIXER') return '⚡';
@@ -397,6 +426,10 @@ export const D3GraphVisualizer: React.FC<D3GraphVisualizerProps> = ({
         <div className="flex items-center gap-1.5">
           <span className="w-3 h-3 rounded-full bg-[#1b2a41]"></span>
           <span>Cross-Chain Bridge</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <span className="w-3 h-3 rounded-full bg-[#15803d]"></span>
+          <span>Deposit Vault</span>
         </div>
         <div className="flex items-center gap-1.5">
           <span className="w-3 h-3 rounded-full bg-[#1e4430]"></span>

@@ -3,7 +3,7 @@ from typing import List, Dict, Optional, Tuple
 from datetime import datetime, timezone
 from app.models.schema import GraphNode, GraphLink, ChainType, NodeType, FlowTransaction
 from app.data.seed_vasps import SEED_VASPS, find_vasp_by_hot_wallet
-from app.engine.heuristics import ExchangeClusteringHeuristics, SANCTIONED_MIXERS
+from app.engine.heuristics import ExchangeClusteringHeuristics, SANCTIONED_MIXERS, AdaptiveExchangeLearner, LearnedExchangeRegistry
 from app.engine.bridge_detector import CrossChainBridgeDetector
 from app.engine.known_entities import get_known_entity, KNOWN_VERIFIED_ENTITIES
 
@@ -264,6 +264,14 @@ class LiveBlockchainCrawler:
             n_risk = 0.12
             n_entity = matched_vasp.legal_entity
             is_term = True
+            term_stat = "VASP_DEPOSIT"
+        elif AdaptiveExchangeLearner.evaluate_node_reinforcement(norm)[0]:
+            _, l_vasp, l_type, l_conf, _ = AdaptiveExchangeLearner.evaluate_node_reinforcement(norm)
+            n_type = l_type
+            n_label = f"{l_vasp.name} {'Hot Vault' if l_type == 'EXCHANGE_HOT' else 'Deposit Vault'}" if l_vasp else "Exchange Hot Vault"
+            n_risk = 0.12 if l_type == "EXCHANGE_HOT" else 0.25
+            n_entity = l_vasp.legal_entity if l_vasp else "Regulated Exchange"
+            is_term = (l_type == "EXCHANGE_HOT")
             term_stat = "VASP_DEPOSIT"
         elif cp_k:
             n_type = cp_k.get("type", "VERIFIED_ENTITY")
@@ -708,11 +716,25 @@ class LiveBlockchainCrawler:
                 n_entity = "Bridge Liquidity Protocol"
                 is_terminal = False
             else:
-                n_type = "INTERMEDIARY" if is_outgoing else "VICTIM"
-                n_label = f"Wallet ({other_addr[:6]}...{other_addr[-4:]})"
-                n_risk = 0.40 if (is_reported_complaint and is_outgoing) else 0.03
-                n_entity = "Outbound Recipient" if is_outgoing else "Inbound Sender"
-                is_terminal = False
+                is_learned, l_vasp, l_type, l_conf, l_signals = AdaptiveExchangeLearner.evaluate_node_reinforcement(
+                    address=other_addr,
+                    in_degree=cp.get("tx_count", 1),
+                    out_degree=1 if is_outgoing else 0,
+                    tx_count=cp.get("tx_count", 1),
+                    label_hint=other_addr
+                )
+                if is_learned and l_vasp:
+                    n_type = l_type
+                    n_label = f"{l_vasp.name} {'Hot Vault' if l_type == 'EXCHANGE_HOT' else 'Deposit Vault'}"
+                    n_risk = 0.12 if l_type == "EXCHANGE_HOT" else 0.25
+                    n_entity = l_vasp.legal_entity
+                    is_terminal = (l_type == "EXCHANGE_HOT")
+                else:
+                    n_type = "INTERMEDIARY" if is_outgoing else "VICTIM"
+                    n_label = f"Wallet ({other_addr[:6]}...{other_addr[-4:]})"
+                    n_risk = 0.40 if (is_reported_complaint and is_outgoing) else 0.03
+                    n_entity = "Outbound Recipient" if is_outgoing else "Inbound Sender"
+                    is_terminal = False
 
             nodes_dict[other_addr] = GraphNode(
                 id=f"node-{other_addr[:10]}",

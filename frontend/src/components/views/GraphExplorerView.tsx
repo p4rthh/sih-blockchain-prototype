@@ -142,17 +142,25 @@ export const GraphExplorerView: React.FC<GraphExplorerViewProps> = ({
       );
     }
 
+    const isExchange = 
+      node.type === 'EXCHANGE_HOT' ||
+      node.type === 'EXCHANGE_DEPOSIT' ||
+      /wazirx|coindcx|coinswitch|zebpay|mudrex|bitbns|giottus|unocoin|binance|kucoin|vasp/i.test(
+        `${node.label} ${node.entity || ''} ${node.address} ${node.clusterId || ''}`
+      );
+
+    if (isExchange) {
+      return (
+        <span className="text-[10px] font-mono px-1.5 py-0.5 rounded font-bold bg-[#dcfce7] text-[#166534] border border-[#86efac]">
+          {node.type === 'EXCHANGE_DEPOSIT' ? 'VASP DEPOSIT VAULT' : 'REGULATED VASP'}
+        </span>
+      );
+    }
+
     if (node.type === 'SUSPECT_BURNER' || node.type === 'MIXER' || node.riskScore > 0.7) {
       return (
         <span className="text-[10px] font-mono px-1.5 py-0.5 rounded font-bold bg-[#fee2e2] text-[#991b1b] border border-[#fca5a5]">
           CRITICAL RISK
-        </span>
-      );
-    }
-    if (node.type === 'EXCHANGE_HOT') {
-      return (
-        <span className="text-[10px] font-mono px-1.5 py-0.5 rounded font-bold bg-[#dcfce7] text-[#166534] border border-[#86efac]">
-          REGULATED VASP
         </span>
       );
     }

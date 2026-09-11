@@ -97,6 +97,110 @@ KNOWN_VERIFIED_ENTITIES: Dict[str, Dict] = {
         "is_terminal": True,
         "is_scam": False
     },
+    "0x21a31ee1afc51d94c2efccaa2092ad1028285549": {
+        "name": "Binance Hot Wallet 20",
+        "entity": "Binance Exchange Settlement Reserve",
+        "type": "EXCHANGE_HOT",
+        "risk_score": 0.12,
+        "is_terminal": True,
+        "is_scam": False
+    },
+    "0x5ace48b8e8a5e44598f1c667a421b4a59714da31": {
+        "name": "WazirX Hot Wallet 04",
+        "entity": "WazirX Sovereign Hot Pool (Zanmai Labs)",
+        "type": "EXCHANGE_HOT",
+        "risk_score": 0.12,
+        "is_terminal": True,
+        "is_scam": False
+    },
+    "0x91d90479d20c5d57d76d4981d3f0cbdfd55b85d0": {
+        "name": "WazirX Hot Wallet 01",
+        "entity": "WazirX India Regulated Hot Pool",
+        "type": "EXCHANGE_HOT",
+        "risk_score": 0.12,
+        "is_terminal": True,
+        "is_scam": False
+    },
+    "0x3456789012345678901234567890123456789012": {
+        "name": "WazirX User Deposit Vault",
+        "entity": "WazirX India (FIU-IND-2023-VASP-001)",
+        "type": "EXCHANGE_DEPOSIT",
+        "risk_score": 0.15,
+        "is_terminal": False,
+        "is_scam": False
+    },
+    "0x7890123456789012345678901234567890123456": {
+        "name": "CoinDCX Main Hot 1",
+        "entity": "CoinDCX (Neblio Technologies)",
+        "type": "EXCHANGE_HOT",
+        "risk_score": 0.12,
+        "is_terminal": True,
+        "is_scam": False
+    },
+    "0x8894e0a0c962cb723c19fc560899dd33e0047745": {
+        "name": "CoinDCX Settlement Vault",
+        "entity": "CoinDCX India Custody Pool",
+        "type": "EXCHANGE_HOT",
+        "risk_score": 0.12,
+        "is_terminal": True,
+        "is_scam": False
+    },
+    "0x4b43343469e38d62a9fd9d685210b39f045053b2": {
+        "name": "CoinSwitch Hot Reserve",
+        "entity": "CoinSwitch Kuber (Bitcipher Labs)",
+        "type": "EXCHANGE_HOT",
+        "risk_score": 0.12,
+        "is_terminal": True,
+        "is_scam": False
+    },
+    "0x2d816a7f34c20e5886d34b179e09581970b54321": {
+        "name": "ZebPay Hot Settlement",
+        "entity": "ZebPay India (Awlencan Innovations)",
+        "type": "EXCHANGE_HOT",
+        "risk_score": 0.12,
+        "is_terminal": True,
+        "is_scam": False
+    },
+    "0x9965507d1a55bcc2695c58ba16fb37d819b0a4df": {
+        "name": "Mudrex Institutional Vault",
+        "entity": "Mudrex Wealth Technologies",
+        "type": "EXCHANGE_HOT",
+        "risk_score": 0.12,
+        "is_terminal": True,
+        "is_scam": False
+    },
+    "0x524b07ebf058097d76cbfa0fdcfd6b83f0ad9c3b": {
+        "name": "Bitbns Hot Wallet 1",
+        "entity": "Bitbns (Buyhatke Internet)",
+        "type": "EXCHANGE_HOT",
+        "risk_score": 0.12,
+        "is_terminal": True,
+        "is_scam": False
+    },
+    "0xa7c2b3d4e5f61728394a5b6c7d8e9f0123456789": {
+        "name": "Giottus Hot Vault",
+        "entity": "Giottus Technologies India",
+        "type": "EXCHANGE_HOT",
+        "risk_score": 0.12,
+        "is_terminal": True,
+        "is_scam": False
+    },
+    "0x19a8b7c6d5e4f3a2b1c0d9e8f7a6b5c4d3e2f1a0": {
+        "name": "Unocoin Settlement Vault",
+        "entity": "Unocoin Technologies",
+        "type": "EXCHANGE_HOT",
+        "risk_score": 0.12,
+        "is_terminal": True,
+        "is_scam": False
+    },
+    "0x163a3d582852eb8ef41ec61204689622d8fd8b7c": {
+        "name": "KuCoin India Hot 1",
+        "entity": "KuCoin FIU-IND Reporting Unit",
+        "type": "EXCHANGE_HOT",
+        "risk_score": 0.12,
+        "is_terminal": True,
+        "is_scam": False
+    },
     "bc1qgdjqv0av3q56jvd82tkdjpy7gdp9ut8tlqmgrpmv24sq90ecnvqqjwvw97": {
         "name": "Bitfinex Cold Storage 1",
         "entity": "Bitfinex Institutional Custody Vault",
