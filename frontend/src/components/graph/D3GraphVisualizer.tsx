@@ -10,6 +10,7 @@ interface D3GraphVisualizerProps {
   onSelectNode: (node: GraphNode) => void;
   selectedLink?: GraphLink | null;
   onSelectLink?: (link: GraphLink) => void;
+  isDark?: boolean;
 }
 
 interface D3Node extends d3.SimulationNodeDatum, GraphNode {}
@@ -31,6 +32,7 @@ export const D3GraphVisualizer: React.FC<D3GraphVisualizerProps> = ({
   onSelectNode,
   selectedLink,
   onSelectLink,
+  isDark = false,
 }) => {
   const svgRef = useRef<SVGSVGElement | null>(null);
 
@@ -92,7 +94,7 @@ export const D3GraphVisualizer: React.FC<D3GraphVisualizerProps> = ({
       .attr('orient', 'auto')
       .append('path')
       .attr('d', 'M0,-5L10,0L0,5')
-      .attr('fill', '#1b2a41');
+      .attr('fill', '#B40039');
 
     // Zoom container
     const g = svg.append('g').attr('class', 'graph-viewport');
@@ -161,8 +163,8 @@ export const D3GraphVisualizer: React.FC<D3GraphVisualizerProps> = ({
       .join('line')
       .attr('cursor', 'pointer')
       .attr('stroke', (d) => {
-        if (isLinkSelected(d)) return '#1b2a41';
-        return d.isBridge ? '#9e2a2b' : '#c8c0b1';
+        if (isLinkSelected(d)) return '#B40039';
+        return d.isBridge ? '#9e2a2b' : (isDark ? '#3d4b63' : '#c8c0b1');
       })
       .attr('stroke-width', (d) => {
         if (isLinkSelected(d)) return 3.5;
@@ -203,8 +205,8 @@ export const D3GraphVisualizer: React.FC<D3GraphVisualizerProps> = ({
 
     linkLabels
       .append('rect')
-      .attr('fill', (d) => (isLinkSelected(d) ? '#1b2a41' : '#f3efe6'))
-      .attr('stroke', (d) => (isLinkSelected(d) ? '#0f172a' : '#d6cfc2'))
+      .attr('fill', (d) => (isLinkSelected(d) ? '#B40039' : (isDark ? '#141a27' : '#f3efe6')))
+      .attr('stroke', (d) => (isLinkSelected(d) ? '#8e002c' : (isDark ? '#2a3449' : '#d6cfc2')))
       .attr('stroke-width', (d) => (isLinkSelected(d) ? 1.5 : 0.75))
       .attr('rx', 4)
       .attr('ry', 4)
@@ -225,7 +227,7 @@ export const D3GraphVisualizer: React.FC<D3GraphVisualizerProps> = ({
       .attr('font-size', '9px')
       .attr('font-family', 'JetBrains Mono, monospace')
       .attr('font-weight', 'bold')
-      .attr('fill', (d) => (isLinkSelected(d) ? '#fff8f0' : '#1b2a41'))
+      .attr('fill', (d) => (isLinkSelected(d) ? '#fff8f0' : (isDark ? '#e2e8f0' : '#B40039')))
       .attr('text-anchor', 'middle')
       .attr('dominant-baseline', 'central')
       .text((d) => (d.txCount && d.txCount > 1 && !d.value.includes('txs') ? `${d.value} (${d.txCount} txs)` : d.value));
@@ -257,12 +259,12 @@ export const D3GraphVisualizer: React.FC<D3GraphVisualizerProps> = ({
       .attr('r', (d) => (d.id === selectedNode?.id ? 26 : 22))
       .attr('fill', 'none')
       .attr('stroke', (d) => {
-        if (d.id === selectedNode?.id) return '#1b2a41';
+        if (d.id === selectedNode?.id) return '#B40039';
         if (d.type === 'VERIFIED_ENTITY' || d.type === 'BENIGN_PUBLIC') return '#0284c7';
         if (d.type === 'SMART_CONTRACT') return '#818cf8';
         if (d.riskScore > 85) return '#9e2a2b';
         if (d.type === 'EXCHANGE_HOT') return '#2c5e43';
-        return '#d6cfc2';
+        return isDark ? '#2e384d' : '#d6cfc2';
       })
       .attr('stroke-width', (d) => (d.id === selectedNode?.id ? 3 : 1.5))
       .attr('stroke-dasharray', (d) => (d.type === 'BRIDGE_LOCK' ? '4,3' : 'none'));
@@ -313,7 +315,7 @@ export const D3GraphVisualizer: React.FC<D3GraphVisualizerProps> = ({
           case 'INTERMEDIARY':
             return '#7d4a13';
           case 'BRIDGE_LOCK':
-            return '#1b2a41';
+            return '#B40039';
           case 'BRIDGE_MINT':
             return '#b58500';
           case 'EXCHANGE_DEPOSIT':
@@ -321,10 +323,10 @@ export const D3GraphVisualizer: React.FC<D3GraphVisualizerProps> = ({
           case 'EXCHANGE_HOT':
             return '#1e4430';
           default:
-            return '#575249';
+            return isDark ? '#64748b' : '#575249';
         }
       })
-      .attr('stroke', '#fff8f0')
+      .attr('stroke', isDark ? '#1a2234' : '#fff8f0')
       .attr('stroke-width', 2);
 
     // Node icon / symbol
@@ -346,7 +348,7 @@ export const D3GraphVisualizer: React.FC<D3GraphVisualizerProps> = ({
       .attr('font-size', '11px')
       .attr('font-family', 'Inter, system-ui, sans-serif')
       .attr('font-weight', 'bold')
-      .attr('fill', '#21201d')
+      .attr('fill', isDark ? '#f1f5f9' : '#21201d')
       .text((d) => d.label);
 
     // Address sub-text
@@ -356,7 +358,7 @@ export const D3GraphVisualizer: React.FC<D3GraphVisualizerProps> = ({
       .attr('text-anchor', 'middle')
       .attr('font-size', '9px')
       .attr('font-family', 'JetBrains Mono, monospace')
-      .attr('fill', '#575249')
+      .attr('fill', isDark ? '#94a3b8' : '#575249')
       .text((d) => `${d.address.slice(0, 6)}...${d.address.slice(-4)}`);
 
     simulation.on('tick', () => {
@@ -397,14 +399,14 @@ export const D3GraphVisualizer: React.FC<D3GraphVisualizerProps> = ({
     return () => {
       simulation.stop();
     };
-  }, [data, selectedNode, onSelectNode, selectedLink, onSelectLink]);
+  }, [data, selectedNode, onSelectNode, selectedLink, onSelectLink, isDark]);
 
   return (
-    <div className="w-full h-full relative bg-[#e8e3d8] overflow-hidden">
+    <div className={`w-full h-full relative overflow-hidden transition-colors duration-200 ${isDark ? 'bg-[#090d14]' : 'bg-[#e8e3d8]'}`}>
       <svg ref={svgRef} className="w-full h-full cursor-grab active:cursor-grabbing" />
       
       {/* Visual Canvas Legends */}
-      <div className="absolute bottom-4 left-4 bg-[#f3efe6]/90 backdrop-blur-sm border border-[#d6cfc2] p-2.5 rounded-lg shadow-xs flex items-center gap-4 text-xs font-mono text-[#575249]">
+      <div className="absolute bottom-4 left-4 bg-[#f3efe6]/85 dark:bg-[#131926]/85 backdrop-blur-md border border-[#d6cfc2]/80 dark:border-white/10 p-2.5 rounded-lg shadow-xs flex items-center gap-4 text-xs font-mono text-[#575249] dark:text-[#94a3b8]">
         <div className="flex items-center gap-1.5">
           <span className="w-3 h-3 rounded-full bg-[#0284c7]"></span>
           <span>Verified/Clean</span>
@@ -418,7 +420,7 @@ export const D3GraphVisualizer: React.FC<D3GraphVisualizerProps> = ({
           <span>Suspect / Mixer</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <span className="w-3 h-3 rounded-full bg-[#1b2a41]"></span>
+          <span className="w-3 h-3 rounded-full bg-[#B40039]"></span>
           <span>Cross-Chain Bridge</span>
         </div>
         <div className="flex items-center gap-1.5">

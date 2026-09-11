@@ -21,8 +21,23 @@ export default function Home() {
   const [dossier, setDossier] = useState<CourtDossier | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [isTracing, setIsTracing] = useState(false);
+  const [theme, setTheme] = useState<'light' | 'dark'>('light');
 
   useEffect(() => {
+    // Initial theme check
+    const savedTheme = localStorage.getItem('cw_theme') as 'light' | 'dark' | null;
+    if (savedTheme) {
+      setTheme(savedTheme);
+      if (savedTheme === 'dark') {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      setTheme('dark');
+      document.documentElement.classList.add('dark');
+    }
+
     // Initial fetch from our API client
     apiClient.getComplaints().then((cList) => {
       setComplaints(cList);
@@ -48,6 +63,17 @@ export default function Home() {
     apiClient.getTrace('0x71C438D9A40326e7a2b9d0b5030225d3129889A4').then(setTraceData);
     apiClient.getVasps().then(setVasps);
   }, []);
+
+  const toggleTheme = () => {
+    const nextTheme = theme === 'light' ? 'dark' : 'light';
+    setTheme(nextTheme);
+    localStorage.setItem('cw_theme', nextTheme);
+    if (nextTheme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  };
 
   const handleTabChange = async (tab: TabType) => {
     setActiveTab(tab);
@@ -181,13 +207,17 @@ export default function Home() {
   };
 
   return (
-    <div className="bg-[#ede8de] text-[#21201d] h-screen w-screen overflow-hidden flex flex-col font-sans selection:bg-[#d6cfc2]">
+    <div className={`h-screen w-screen overflow-hidden flex flex-col font-sans transition-colors duration-200 ${
+      theme === 'dark' ? 'dark bg-[#0b0f17] text-[#f1f5f9]' : 'bg-[#ede8de] text-[#21201d]'
+    }`}>
       {/* Persistent Top Navigation Bar */}
       <Header
         setActiveTab={(t) => handleTabChange(t as TabType)}
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
         onSearch={handleSearch}
+        theme={theme}
+        toggleTheme={toggleTheme}
       />
 
       {/* Main Structural Chassis */}
@@ -201,7 +231,9 @@ export default function Home() {
 
         {/* Viewport Content Area (Offset by Sidebar width) */}
         <main
-          className={`flex-1 ml-60 h-full flex flex-col bg-[#e9e4d9] ${
+          className={`flex-1 ml-60 h-full flex flex-col transition-colors duration-200 ${
+            theme === 'dark' ? 'bg-[#0b0f17]' : 'bg-[#e9e4d9]'
+          } ${
             activeTab === 'explorer' || activeTab === 'dossier'
               ? 'overflow-hidden'
               : 'overflow-y-auto custom-scrollbar'
@@ -220,6 +252,7 @@ export default function Home() {
               traceData={traceData}
               onGenerateDossier={handleGenerateDossier}
               onTraceWallet={handleTraceWallet}
+              isDark={theme === 'dark'}
             />
           )}
 
@@ -250,17 +283,17 @@ export default function Home() {
       {/* Live Mempool Crawler Overlay */}
       {isTracing && (
         <div className="fixed inset-0 bg-[#090d16]/70 backdrop-blur-xs flex items-center justify-center z-50 p-4">
-          <div className="bg-[#f3efe6] border border-[#d6cfc2] rounded-xl max-w-sm w-full p-6 shadow-2xl text-center space-y-4">
-            <div className="w-12 h-12 rounded-full bg-[#1b2a41] text-[#fff8f0] mx-auto flex items-center justify-center animate-spin">
+          <div className="bg-[#f3efe6]/90 dark:bg-[#151b28]/90 backdrop-blur-md border border-[#d6cfc2]/80 dark:border-white/10 rounded-xl max-w-sm w-full p-6 shadow-2xl text-center space-y-4">
+            <div className="w-12 h-12 rounded-full bg-[#B40039] text-white mx-auto flex items-center justify-center animate-spin">
               <span className="material-symbols-outlined text-2xl">autorenew</span>
             </div>
             <div>
-              <h3 className="text-base font-bold font-serif text-[#1b2a41]">Forensic Mempool Indexing</h3>
-              <p className="text-xs text-[#575249] mt-1 font-mono">
+              <h3 className="text-base font-bold font-sans text-[#B40039] dark:text-[#ff4d79]">Forensic Mempool Indexing</h3>
+              <p className="text-xs text-[#575249] dark:text-[#94a3b8] mt-1 font-mono">
                 Crawling counterparty transactions, classifying clusters, and resolving legal entities...
               </p>
             </div>
-            <div className="text-[10px] font-mono text-[#2c5e43] bg-[#e2ebd9] border border-[#bdd6bc] py-1 px-2.5 rounded inline-block font-semibold">
+            <div className="text-[10px] font-mono text-[#2c5e43] dark:text-[#4ade80] bg-[#e2ebd9] dark:bg-[#163022] border border-[#bdd6bc] dark:border-[#22c55e]/30 py-1 px-2.5 rounded inline-block font-semibold">
               LIVE BFS HOP RECURSION ACTIVE
             </div>
           </div>

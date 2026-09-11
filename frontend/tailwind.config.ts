@@ -1,6 +1,7 @@
 import type { Config } from "tailwindcss";
 
 const config: Config = {
+  darkMode: "class",
   content: [
     "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
@@ -19,11 +20,16 @@ const config: Config = {
         "canvas-base": "#e8e3d8",
         "canvas-soft": "#ece7dc",
         "canvas-taupe": "#dfd8cb",
-        primary: "#1b2a41",
-        "primary-light": "#283e5e",
-        "primary-container": "#243754",
-        "oxford-navy": "#1b2a41",
-        "oxford-navy-wash": "#dce3ec",
+        primary: "#B40039",
+        "primary-hover": "#8e002c",
+        "primary-light": "#d62058",
+        "primary-container": "#9b0031",
+        "crimson-brand": "#B40039",
+        "crimson-hover": "#8e002c",
+        "crimson-wash": "rgba(180, 0, 57, 0.08)",
+        "crimson-border": "rgba(180, 0, 57, 0.25)",
+        "oxford-navy": "#B40039",
+        "oxford-navy-wash": "#fee2e2",
         ink: "#21201d",
         "ink-body": "#3c3933",
         "ink-muted": "#575249",

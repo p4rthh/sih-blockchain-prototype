@@ -15,8 +15,13 @@
     text-rendering: optimizeLegibility;
   }
 
+  .dark body {
+    background-color: #0b0f17;
+    color: #f1f5f9;
+  }
+
   :focus-visible {
-    outline: 2px solid #1b2a41;
+    outline: 2px solid #B40039;
     outline-offset: 2px;
   }
 }
@@ -51,6 +56,44 @@
 }
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: #b5ac9d;
+}
+
+.dark .custom-scrollbar::-webkit-scrollbar-track {
+  background: #0f141f;
+}
+.dark .custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #252e3f;
+  border-radius: 9999px;
+}
+.dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #39465e;
+}
+
+/* Glassmorphic surface helpers */
+.glass-panel {
+  background: rgba(243, 239, 230, 0.78);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(214, 207, 194, 0.75);
+}
+.dark .glass-panel {
+  background: rgba(18, 24, 38, 0.75);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.glass-card {
+  background: rgba(244, 240, 230, 0.82);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(214, 207, 194, 0.8);
+}
+.dark .glass-card {
+  background: rgba(21, 28, 44, 0.75);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.09);
 }
 
 @keyframes subtle-pulse {
