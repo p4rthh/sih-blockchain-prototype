@@ -26,7 +26,7 @@ export default function Home() {
   useEffect(() => {
     // Initial fetch from our API client
     apiClient.getComplaints().then(setComplaints);
-    apiClient.getTrace('0x098b716b8aaf21512996dc57eb0615e2383e2f96').then(setTraceData);
+    apiClient.getTrace('0x71C438D9A40326e7a2b9d0b5030225d3129889A4').then(setTraceData);
     apiClient.getVasps().then(setVasps);
     apiClient.getDossier('NCRP-2026-DEL-89210').then(setDossier);
   }, []);
