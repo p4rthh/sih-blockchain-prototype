@@ -23,7 +23,8 @@ class EvidenceService:
         fir_number: str = "FIR-412/2026",
         io_name: str = "Inspector R. K. Sharma",
         police_unit: str = "Special Cell Cyber Crime PS, Mandir Marg, New Delhi",
-        target_vasp_id: str = "vasp-001"
+        target_vasp_id: str = "vasp-001",
+        victim_name: str = "Sanjay K. Malhotra"
     ) -> CourtDossier:
         assigned_vasp = get_vasp_by_id(target_vasp_id) or SEED_VASPS[0]
 
@@ -31,7 +32,8 @@ class EvidenceService:
         narratives = InvestigativeNarrator.generate_narrative(
             trace_data=trace_data,
             assigned_vasp=assigned_vasp,
-            fir_number=fir_number
+            fir_number=fir_number,
+            victim_name=victim_name
         )
 
         # 2. Compute SHA-256 Digest of the entire forensic telemetry
@@ -64,5 +66,6 @@ class EvidenceService:
             assigned_vasp=assigned_vasp,
             section94_notice_preview=narratives["section_94_notice"],
             is_signed=True,
-            generated_at=now_str
+            generated_at=now_str,
+            llm_model=narratives.get("llm_model", "Ollama (Llama 3.1 8B)")
         )

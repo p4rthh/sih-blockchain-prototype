@@ -25,6 +25,6 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  const dossier = generateDynamicDossier(caseRef);
+  const dossier = generateDynamicDossier(caseRef, body.trace);
   return NextResponse.json(dossier);
 }

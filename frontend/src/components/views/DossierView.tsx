@@ -110,7 +110,7 @@ export const DossierView: React.FC<DossierViewProps> = ({ dossier, onDispatchFre
                   <span className="w-1.5 h-1.5 rounded-full bg-[#2c5e43]"></span>
                   SHA-256 CERTIFIED
                 </div>
-                <div className="font-mono text-[11px] text-[#797368] mt-1.5">DOC REF: 2026/IND-NCRP/89201</div>
+                <div className="font-mono text-[11px] text-[#797368] mt-1.5">DOC REF: {dossier.caseRef}</div>
               </div>
             </div>
 
@@ -124,8 +124,12 @@ export const DossierView: React.FC<DossierViewProps> = ({ dossier, onDispatchFre
 
               <div className="bg-[#ece7dc] p-3.5 rounded border border-[#d5cec1]">
                 <div className="text-[10px] font-mono text-[#797368] uppercase">Suspect Target ID</div>
-                <div className="font-mono text-xs text-[#9e2a2b] font-bold mt-1">TGT-ETH-892</div>
-                <div className="text-[10px] text-[#575249] mt-0.5">Cluster: Lazarus Sub-Branch B</div>
+                <div className="font-mono text-xs text-[#9e2a2b] font-bold mt-1 truncate" title={dossier.suspectTargetId}>
+                  {dossier.suspectTargetId ? `${dossier.suspectTargetId.slice(0, 8)}...${dossier.suspectTargetId.slice(-6)}` : 'N/A'}
+                </div>
+                <div className="text-[10px] text-[#575249] mt-0.5 truncate">
+                  Cluster: {dossier.traceData?.targetEntity || dossier.traceData?.typology || 'Laundering Cluster'}
+                </div>
               </div>
 
               <div className="bg-[#ece7dc] p-3.5 rounded border border-[#d5cec1]">
@@ -163,8 +167,10 @@ export const DossierView: React.FC<DossierViewProps> = ({ dossier, onDispatchFre
                 <p className="text-xs text-[#3c3933] leading-relaxed font-sans">{dossier.synopsisEn}</p>
               </div>
               <div className="mt-4 pt-3 border-t border-[#dfd8cb] flex items-center justify-between text-[#575249] font-mono text-[10px]">
-                <span>CONFIDENCE: 91.4% DETERMINISTIC</span>
-                <span className="text-[#9e2a2b] font-bold bg-[#f5e4e2] px-2 py-0.5 rounded">SEVERITY: CAT-A EXFIL</span>
+                <span>CONFIDENCE: {Math.round((dossier.traceData?.confidence || 0.92) * 100)}% ATTRIBUTED</span>
+                <span className="text-[#2c5e43] font-bold bg-[#e2ebd9] px-2 py-0.5 rounded border border-[#c5d8ba]">
+                  AI: {dossier.llmModel || 'Ollama (Llama 3.1 8B)'}
+                </span>
               </div>
             </div>
 
@@ -203,7 +209,7 @@ export const DossierView: React.FC<DossierViewProps> = ({ dossier, onDispatchFre
               </div>
               <div className="flex items-center space-x-2 font-mono text-[10px]">
                 <span className="bg-[#ece7dc] px-2.5 py-1 border border-[#d5cec1] rounded text-[#575249] font-semibold">
-                  4 HOPS TRACED
+                  {dossier.traceData?.links?.length || dossier.traceData?.totalHops || 0} HOPS TRACED
                 </span>
                 <span className="bg-[#e2ebd9] px-2.5 py-1 border border-[#c5d8ba] rounded text-[#1e3b2b] font-bold flex items-center gap-1">
                   <span className="material-symbols-outlined text-[12px] text-[#2c5e43]">check_circle</span>
@@ -227,65 +233,42 @@ export const DossierView: React.FC<DossierViewProps> = ({ dossier, onDispatchFre
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#d5cec1] font-mono text-[11px]">
-                  <tr className="hover:bg-[#ece7dc] transition-colors bg-[#f4f0e6]">
-                    <td className="py-2.5 px-3 font-bold text-[#9e2a2b]">#00 ROOT</td>
-                    <td className="py-2.5 px-3 text-[#21201d]">0x8a92...1c4b</td>
-                    <td className="py-2.5 px-3 text-[#575249]">15-AUG 14:22</td>
-                    <td className="py-2.5 px-3 text-[#21201d]">0x742d...44e</td>
-                    <td className="py-2.5 px-3 text-[#9e2a2b] font-bold">0x3b11...99f</td>
-                    <td className="py-2.5 px-3 font-bold text-[#21201d]">12.50 ETH</td>
-                    <td className="py-2.5 px-3 font-sans">
-                      <span className="px-2 py-0.5 rounded text-[10px] bg-[#f5e4e2] text-[#9e2a2b] font-semibold">
-                        Unauthorized Drain
-                      </span>
-                    </td>
-                    <td className="py-2.5 px-3 font-sans text-[#2c5e43] font-bold">Sec 65B Direct</td>
-                  </tr>
+                  {dossier.traceData?.links && dossier.traceData.links.length > 0 ? (
+                    dossier.traceData.links.map((link, idx) => {
+                      const isRoot = idx === 0;
+                      const isTarget = idx === dossier.traceData.links.length - 1;
+                      const sStr = typeof link.source === 'object' && link.source !== null ? ((link.source as { label?: string; id?: string }).label || (link.source as { label?: string; id?: string }).id || 'Node') : String(link.source);
+                      const tStr = typeof link.target === 'object' && link.target !== null ? ((link.target as { label?: string; id?: string }).label || (link.target as { label?: string; id?: string }).id || 'Node') : String(link.target);
+                      const displaySender = sStr.length > 14 && sStr.startsWith('0x') ? `${sStr.slice(0, 6)}...${sStr.slice(-4)}` : sStr;
+                      const displayReceiver = tStr.length > 14 && tStr.startsWith('0x') ? `${tStr.slice(0, 6)}...${tStr.slice(-4)}` : tStr;
+                      const displayTx = link.txHash ? (link.txHash.length > 14 ? `${link.txHash.slice(0, 6)}...${link.txHash.slice(-4)}` : link.txHash) : `tx-hop-#0${idx}`;
 
-                  <tr className="hover:bg-[#ece7dc] transition-colors bg-[#ede9df]">
-                    <td className="py-2.5 px-3 font-bold text-[#575249]">#01 HOP</td>
-                    <td className="py-2.5 px-3 text-[#21201d]">0x12dc...f990</td>
-                    <td className="py-2.5 px-3 text-[#575249]">15-AUG 14:38</td>
-                    <td className="py-2.5 px-3 text-[#9e2a2b]">0x3b11...99f</td>
-                    <td className="py-2.5 px-3 text-[#21201d]">0x889a...01e</td>
-                    <td className="py-2.5 px-3 text-[#21201d]">12.488 ETH</td>
-                    <td className="py-2.5 px-3 font-sans">
-                      <span className="px-2 py-0.5 rounded text-[10px] bg-[#ece7dc] text-[#575249]">
-                        Peel Chain Transit
-                      </span>
-                    </td>
-                    <td className="py-2.5 px-3 font-sans text-[#2c5e43]">Forensic Ingest</td>
-                  </tr>
-
-                  <tr className="hover:bg-[#ece7dc] transition-colors bg-[#f4f0e6]">
-                    <td className="py-2.5 px-3 font-bold text-[#1b2a41]">#02 BRIDGE</td>
-                    <td className="py-2.5 px-3 text-[#21201d]">0x44ab...e812</td>
-                    <td className="py-2.5 px-3 text-[#575249]">15-AUG 15:02</td>
-                    <td className="py-2.5 px-3 text-[#21201d]">0x889a...01e</td>
-                    <td className="py-2.5 px-3 text-[#1b2a41] font-bold">Multichain Lock</td>
-                    <td className="py-2.5 px-3 text-[#21201d]">12.45 ETH</td>
-                    <td className="py-2.5 px-3 font-sans">
-                      <span className="px-2 py-0.5 rounded text-[10px] bg-[#ece7dc] text-[#1b2a41] font-semibold">
-                        State Bridge Cross
-                      </span>
-                    </td>
-                    <td className="py-2.5 px-3 font-sans text-[#2c5e43]">Corroborated</td>
-                  </tr>
-
-                  <tr className="hover:bg-[#ece7dc] transition-colors bg-[#ede9df]">
-                    <td className="py-2.5 px-3 font-bold text-[#2c5e43]">#03 TARGET</td>
-                    <td className="py-2.5 px-3 text-[#21201d]">0x99fe...a302</td>
-                    <td className="py-2.5 px-3 text-[#575249]">15-AUG 15:19</td>
-                    <td className="py-2.5 px-3 text-[#21201d]">BSC Mint Gateway</td>
-                    <td className="py-2.5 px-3 text-[#2c5e43] font-bold">0xWAZIRX_HOT</td>
-                    <td className="py-2.5 px-3 font-bold text-[#21201d]">41,200 USDT</td>
-                    <td className="py-2.5 px-3 font-sans">
-                      <span className="px-2 py-0.5 rounded text-[10px] bg-[#e2ebd9] text-[#1e3b2b] font-bold">
-                        WazirX Hot Vault
-                      </span>
-                    </td>
-                    <td className="py-2.5 px-3 font-sans text-[#9e2a2b] font-bold">FREEZE WARRANT</td>
-                  </tr>
+                      return (
+                        <tr key={link.txHash || idx} className={`hover:bg-[#ece7dc] transition-colors ${idx % 2 === 0 ? 'bg-[#f4f0e6]' : 'bg-[#ede9df]'}`}>
+                          <td className={`py-2.5 px-3 font-bold ${isRoot ? 'text-[#9e2a2b]' : isTarget ? 'text-[#2c5e43]' : link.isBridge ? 'text-[#1b2a41]' : 'text-[#575249]'}`}>
+                            {isRoot ? '#00 ROOT' : isTarget ? `#0${idx} TARGET` : link.isBridge ? `#0${idx} BRIDGE` : `#0${idx} HOP`}
+                          </td>
+                          <td className="py-2.5 px-3 text-[#21201d]">{displayTx}</td>
+                          <td className="py-2.5 px-3 text-[#575249]">{link.timestamp || 'Live Ingest'}</td>
+                          <td className="py-2.5 px-3 text-[#21201d]" title={sStr}>{displaySender}</td>
+                          <td className={`py-2.5 px-3 font-bold ${isTarget ? 'text-[#2c5e43]' : 'text-[#9e2a2b]'}`} title={tStr}>{displayReceiver}</td>
+                          <td className="py-2.5 px-3 font-bold text-[#21201d]">{link.value}</td>
+                          <td className="py-2.5 px-3 font-sans">
+                            <span className={`px-2 py-0.5 rounded text-[10px] font-semibold ${isTarget ? 'bg-[#e2ebd9] text-[#1e3b2b]' : isRoot ? 'bg-[#f5e4e2] text-[#9e2a2b]' : 'bg-[#ece7dc] text-[#575249]'}`}>
+                              {link.heuristic || (link.isBridge ? 'State Bridge Cross' : 'Peel Chain Transit')}
+                            </span>
+                          </td>
+                          <td className={`py-2.5 px-3 font-sans font-bold ${isTarget ? 'text-[#9e2a2b]' : 'text-[#2c5e43]'}`}>
+                            {isTarget ? 'FREEZE WARRANT' : isRoot ? 'Sec 63 BSA Direct' : link.isBridge ? 'Corroborated' : 'Forensic Ingest'}
+                          </td>
+                        </tr>
+                      );
+                    })
+                  ) : (
+                    <tr>
+                      <td colSpan={8} className="py-4 px-3 text-center text-[#797368]">No transaction hops found in trace data</td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>
@@ -337,7 +320,7 @@ export const DossierView: React.FC<DossierViewProps> = ({ dossier, onDispatchFre
               </div>
               <div className="flex justify-between">
                 <span className="text-[#797368]">Freeze SLA:</span>
-                <span className="text-[#9e2a2b] font-bold">&lt; 24 Hours (Mandatory)</span>
+                <span className="text-[#9e2a2b] font-bold">&lt; {assignedVasp.freezeSlaHours || 24} Hours (Mandatory)</span>
               </div>
             </div>
           </div>
@@ -379,7 +362,7 @@ export const DossierView: React.FC<DossierViewProps> = ({ dossier, onDispatchFre
                 <span>NOTICE DISPATCHED TO SAHYOG</span>
               </div>
               <div className="text-[10px]">ACK REF: {freezeAck}</div>
-              <div className="text-[10px]">WazirX Compliance Desk notified via secure webhook.</div>
+              <div className="text-[10px]">{dossier.assignedVASP?.name || 'VASP'} Compliance Desk notified via secure webhook.</div>
             </div>
           )}
 

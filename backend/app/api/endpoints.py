@@ -131,6 +131,31 @@ def list_vasps_alias():
 # --------------------------------------------------------------------------
 # 4. Court-Admissible Dossier & Legal Evidence Packets
 # --------------------------------------------------------------------------
+def _resolve_complaint_and_vasp(case_ref: str, trace_data: Optional[TraceGraphData] = None):
+    complaint = None
+    for c in trace_service.complaints.values():
+        if (
+            c.acknowledgement_no.lower() == case_ref.lower()
+            or c.id.lower() == case_ref.lower()
+            or (trace_data and c.suspect_address.lower() == trace_data.root_address.lower())
+        ):
+            complaint = c
+            break
+
+    target_vasp_id = "vasp-001"
+    if trace_data and trace_data.target_entity:
+        for v in SEED_VASPS:
+            if v.name.lower() in trace_data.target_entity.lower() or trace_data.target_entity.lower() in v.name.lower():
+                target_vasp_id = v.id
+                break
+
+    fir_number = complaint.fir_number if complaint else "FIR-412/2026"
+    victim_name = complaint.victim_name if complaint else "Sanjay K. Malhotra"
+    io_name = complaint.io_name if complaint else "Inspector R. K. Sharma"
+    police_unit = complaint.police_station if complaint else "Special Cell Cyber Crime PS, Mandir Marg, New Delhi"
+
+    return complaint, target_vasp_id, fir_number, victim_name, io_name, police_unit
+
 @router.get("/reports/{case_ref}", response_model=CourtDossier, tags=["Legal Evidence"])
 def get_dossier(case_ref: str):
     """
@@ -138,9 +163,15 @@ def get_dossier(case_ref: str):
     with SHA-256 seal, IPFS reference, and bilingual narrative.
     """
     trace_data = trace_service.get_trace_by_id("default")
+    complaint, target_vasp_id, fir_number, victim_name, io_name, police_unit = _resolve_complaint_and_vasp(case_ref, trace_data)
     return EvidenceService.compile_dossier(
         trace_data=trace_data,
-        case_ref=case_ref
+        case_ref=case_ref,
+        fir_number=fir_number,
+        victim_name=victim_name,
+        io_name=io_name,
+        police_unit=police_unit,
+        target_vasp_id=target_vasp_id
     )
 
 @router.get("/reports/{case_ref}/pdf", tags=["Legal Evidence"])
@@ -165,10 +196,16 @@ def download_dossier_pdf(
     if not trace_data:
         trace_data = trace_service.get_trace_by_id("default")
 
+    complaint, resolved_vasp_id, fir_number, victim_name, io_name, police_unit = _resolve_complaint_and_vasp(case_ref, trace_data)
+
     dossier = EvidenceService.compile_dossier(
         trace_data=trace_data,
         case_ref=case_ref,
-        target_vasp_id=vasp_id or "vasp-001"
+        fir_number=fir_number,
+        victim_name=victim_name,
+        io_name=io_name,
+        police_unit=police_unit,
+        target_vasp_id=vasp_id or resolved_vasp_id
     )
     pdf_bytes = PDFDossierGenerator.generate_pdf_bytes(dossier)
     return Response(
@@ -183,9 +220,20 @@ def download_dossier_pdf(
 def generate_report(request: ReportGenerateRequest):
     """Compiles a statutory investigation report for court submission."""
     trace_data = trace_service.get_trace_by_id(request.trace_id)
+    if not trace_data or (trace_data.trace_id != request.trace_id and (request.trace_id.startswith("0x") or request.trace_id.startswith("bc1") or request.trace_id.startswith("T"))):
+        trace_data = trace_service.run_trace(TraceRequest(wallet_address=request.trace_id))
+    
+    case_ref = request.case_ref or f"CASE-{request.trace_id[-5:]}"
+    complaint, target_vasp_id, fir_number, victim_name, io_name, police_unit = _resolve_complaint_and_vasp(case_ref, trace_data)
+
     return EvidenceService.compile_dossier(
         trace_data=trace_data,
-        case_ref=request.case_ref or f"CASE-{request.trace_id[-5:]}"
+        case_ref=case_ref,
+        fir_number=fir_number,
+        victim_name=victim_name,
+        io_name=io_name,
+        police_unit=police_unit,
+        target_vasp_id=target_vasp_id
     )
 
 @router.post("/reports/pdf", tags=["Legal Evidence"])
@@ -193,10 +241,20 @@ def generate_report_pdf(request: ReportGenerateRequest):
     """Compiles and downloads statutory investigation PDF report directly."""
     from app.services.pdf_service import PDFDossierGenerator
     trace_data = trace_service.get_trace_by_id(request.trace_id)
+    if not trace_data or (trace_data.trace_id != request.trace_id and (request.trace_id.startswith("0x") or request.trace_id.startswith("bc1") or request.trace_id.startswith("T"))):
+        trace_data = trace_service.run_trace(TraceRequest(wallet_address=request.trace_id))
+
     case_ref = request.case_ref or f"CASE-{request.trace_id[-5:]}"
+    complaint, target_vasp_id, fir_number, victim_name, io_name, police_unit = _resolve_complaint_and_vasp(case_ref, trace_data)
+
     dossier = EvidenceService.compile_dossier(
         trace_data=trace_data,
-        case_ref=case_ref
+        case_ref=case_ref,
+        fir_number=fir_number,
+        victim_name=victim_name,
+        io_name=io_name,
+        police_unit=police_unit,
+        target_vasp_id=target_vasp_id
     )
     pdf_bytes = PDFDossierGenerator.generate_pdf_bytes(dossier)
     return Response(

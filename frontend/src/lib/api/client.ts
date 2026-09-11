@@ -116,7 +116,7 @@ export const apiClient = {
   },
 
   // 5b. Compile new Court Dossier for active trace
-  async compileDossier(traceId: string, caseRef?: string): Promise<CourtDossier | null> {
+  async compileDossier(traceId: string, caseRef?: string, currentTrace?: TraceGraphData): Promise<CourtDossier | null> {
     try {
       const res = await fetch(`${BASE_URL}/api/v1/reports`, {
         method: 'POST',
@@ -124,6 +124,7 @@ export const apiClient = {
         body: JSON.stringify({
           trace_id: traceId,
           case_ref: caseRef,
+          trace: currentTrace,
         }),
       });
       if (res.ok) {
@@ -132,7 +133,7 @@ export const apiClient = {
     } catch (err) {
       console.warn('Backend unavailable, generating local dossier synthesis', err);
     }
-    return generateDynamicDossier(caseRef || 'NCRP-2026-DEL-89210');
+    return generateDynamicDossier(caseRef || 'NCRP-2026-DEL-89210', currentTrace);
   },
 
   // 6. Download Official Court-Admissible PDF Dossier (Section 63 BSA / Sec 65B IEA)

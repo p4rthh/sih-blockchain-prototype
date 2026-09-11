@@ -2806,20 +2806,38 @@ export const MOCK_COMPLAINTS: Complaint[] = [
   }
 ];
 
-export function generateDynamicDossier(caseRef: string, trace?: TraceGraphData): CourtDossier {
+export function generateDynamicDossier(caseRef?: string, trace?: TraceGraphData): CourtDossier {
   const activeTrace = trace || EXACT_WAZIRX_TRACE;
-  const vasp = MOCK_VASPS[0];
+  
+  // Find matching complaint by caseRef or suspect root address
+  const matchingComplaint = MOCK_COMPLAINTS.find(
+    (c) => c.acknowledgementNo === caseRef || c.id === caseRef || c.suspectAddress.toLowerCase() === activeTrace.rootAddress.toLowerCase()
+  );
+
+  const firNumber = matchingComplaint?.firNumber || 'FIR-402/2026 u/s 66D IT Act & 318(4) BNS';
+  const victimName = matchingComplaint?.victimName || 'Sanjay K. Malhotra';
+  const policeUnit = matchingComplaint?.policeStation || 'Delhi Police Special Cell (Cyber Operations)';
+  const ioName = matchingComplaint?.ioName || 'Inspector R. K. Sharma';
+  const effectiveCaseRef = caseRef || matchingComplaint?.acknowledgementNo || 'NCRP-2026-DEL-89210';
+  const totalAmount = matchingComplaint?.amount || activeTrace.totalValueStolen;
+
+  // Match designated terminal exchange or fallback to registered VASP
+  const vasp = MOCK_VASPS.find(
+    (v) => v.name.toLowerCase() === activeTrace.targetEntity.toLowerCase() ||
+           activeTrace.targetEntity.toLowerCase().includes(v.name.toLowerCase()) ||
+           v.knownHotWallets.some(w => w.toLowerCase() === activeTrace.rootAddress.toLowerCase())
+  ) || MOCK_VASPS[0];
 
   return {
-    caseRef: caseRef || 'NCRP-2026-DEL-89210',
-    firNumber: 'FIR-402/2026 u/s 66D IT Act & 318(4) BNS',
+    caseRef: effectiveCaseRef,
+    firNumber: firNumber,
     suspectTargetId: activeTrace.rootAddress,
-    investigatingOfficer: 'Inspector R. K. Sharma, Cyber Cell Mandir Marg',
-    unit: 'Delhi Police Special Cell (Cyber Operations)',
+    investigatingOfficer: `${ioName}, Cyber Crime Division`,
+    unit: policeUnit,
     sha256Digest: '7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f',
     ipfsCid: 'bafybeigdyrzt5sfp7udm7hu76uh7y26nf3efuylqabf3oclgtqy55fbzdi',
-    synopsisEn: `Forensic analysis of suspect wallet ${activeTrace.rootAddress} initiated pursuant to NCRP Complaint. Multi-hop automated peeling dispersion completed over ${activeTrace.totalHops} hops. Final terminal status: ${activeTrace.trailStatus}. Attributed entity: ${activeTrace.targetEntity}. Section 94 BNSS preservation notice dispatched to nodal compliance officer.`,
-    synopsisHi: `संदिग्ध वॉलेट ${activeTrace.rootAddress} की फॉरेंसिक जांच एनसीआरपी शिकायत के तहत पूरी की गई। स्वचालित पीलिंग विश्लेषण से स्पष्ट होता है कि चोरी की धनराशि ${activeTrace.totalHops} चरणों में स्थानांतरित की गई। अंतिम स्थिति: ${activeTrace.trailStatus}। चिन्हित इकाई: ${activeTrace.targetEntity}। धारा 94 बीएनएसएस नोटिस नोडल अनुपालन अधिकारी को प्रेषित किया गया।`,
+    synopsisEn: `Forensic blockchain attribution initiated under ${effectiveCaseRef} established that stolen funds (${totalAmount}) siphoned from complainant ${victimName} were routed through a ${activeTrace.totalHops}-hop ${activeTrace.typology} obfuscation network. Automated multi-hop heuristics and GraphSAGE neural clustering conclusively attributed the terminal funds to domestic exchange ${vasp.name} (${vasp.fiuRegNumber}) with ${Math.round((activeTrace.confidence || 0.92) * 100)}% confidence. Statutory directive under Section 94 BNSS prepared for compliance dispatch.`,
+    synopsisHi: `एनसीआरपी शिकायत ${effectiveCaseRef} (शिकायतकर्ता: ${victimName}) के अंतर्गत संदिग्ध वॉलेट ${activeTrace.rootAddress} की ब्लॉकचेन फॉरेंसिक जांच पूर्ण की गई। कुल ${activeTrace.totalHops} चरणों के उपरांत उड़ाई गई धनराशि (${totalAmount}) को ${activeTrace.typology} नेटवर्क के माध्यम से अंतरित पाया गया। चेनवॉच फोरेंसिक इंजन द्वारा ${Math.round((activeTrace.confidence || 0.92) * 100)}% विश्वसनीयता के साथ यह राशि एफआईयू-पंजीकृत एक्सचेंज ${vasp.name} के अधिकृत खाते में प्रमाणित की गई। धारा 94 बीएनएसएस नोटिस तैयार किया गया है।`,
     traceData: activeTrace,
     assignedVASP: vasp,
     section94NoticePreview: `NOTICE UNDER SECTION 94 OF BHARATIYA NAGARIK SURAKSHA SANHITA (BNSS), 2023 / SEC 91 CrPC
@@ -2830,22 +2848,23 @@ ${vasp.legalEntity} (${vasp.name}),
 ${vasp.jurisdiction}
 FIU-IND Registration: ${vasp.fiuRegNumber}
 
-Subject: URGENT NOTICE TO FREEZE VDA DEPOSIT ACCOUNTS AND PRESERVE TRANSACTION LOGS IN FIR NO. 402/2026
+Subject: URGENT STATUTORY NOTICE TO FREEZE VDA DEPOSIT ACCOUNTS IN ${firNumber}
 
-Whereas investigation into FIR No. 402/2026 registered at Cyber Police Station Mandir Marg reveals that stolen cryptocurrency amounting to ${activeTrace.totalValueStolen} has been deposited into your hot wallet/sweep address:
+Whereas an investigation into cyber fraud under ${firNumber} at ${policeUnit} reveals that illicit proceeds amounting to ${totalAmount} stolen from complainant ${victimName} were deposited into your exchange vault cluster:
 Target Root: ${activeTrace.rootAddress}
-Terminal Entity: ${activeTrace.targetEntity}
+Attributed Destination: ${vasp.name} Vault
 
-You are hereby directed to:
-1. Immediately freeze and suspend all withdrawal facilities for the recipient deposit account and any linked bank or VDA balances.
-2. Furnish full KYC dossier (Aadhaar, PAN, Passport, IP logs, linked bank accounts).
-3. Acknowledge compliance within ${vasp.freezeSlaHours} hours pursuant to statutory FIU-IND directives.
+YOU ARE HEREBY DIRECTED TO:
+1. Immediately freeze and suspend all outbound withdrawal, transfer, and swap facilities for this deposit vault cluster within your ${vasp.freezeSlaHours}-hour statutory SLA.
+2. Furnish full KYC dossier (Aadhaar, PAN, Passport, IP access logs, linked Indian bank accounts).
+3. Transmit a Certificate of Electronic Evidence under Section 63 of Bharatiya Sakshya Adhiniyam (BSA), 2023.
 
-Issued under seal:
-Inspector R. K. Sharma
-Special Cell Cyber Crime Unit, New Delhi`,
+Issued under seal of Law Enforcement:
+${ioName}
+${policeUnit}`,
     isSigned: true,
-    generatedAt: new Date().toISOString()
+    generatedAt: new Date().toISOString(),
+    llmModel: 'Ollama (Llama 3.1 8B)'
   };
 }
 

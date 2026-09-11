@@ -17,6 +17,7 @@ export default function Home() {
   const [complaints, setComplaints] = useState<Complaint[]>([]);
   const [traceData, setTraceData] = useState<TraceGraphData | null>(null);
   const [vasps, setVasps] = useState<VASPRegistryEntry[]>([]);
+  const [selectedComplaint, setSelectedComplaint] = useState<Complaint | null>(null);
   const [dossier, setDossier] = useState<CourtDossier | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [isTracing, setIsTracing] = useState(false);
@@ -33,8 +34,24 @@ export default function Home() {
     if (!searchQuery.trim()) return;
     setIsTracing(true);
     try {
-      const res = await apiClient.getTrace(searchQuery.trim());
+      const q = searchQuery.trim();
+      const res = await apiClient.getTrace(q);
       setTraceData(res);
+      const matching = complaints.find(
+        (c) => c.acknowledgementNo.toLowerCase() === q.toLowerCase() ||
+               c.suspectAddress.toLowerCase() === q.toLowerCase() ||
+               c.firNumber.toLowerCase().includes(q.toLowerCase())
+      );
+      setSelectedComplaint(matching || null);
+      const caseRef = matching ? matching.acknowledgementNo : (q.startsWith('0x') ? `NCRP-${q.slice(2, 8).toUpperCase()}` : q);
+      const freshDossier = await apiClient.compileDossier(
+        res.traceId,
+        caseRef,
+        res
+      );
+      if (freshDossier) {
+        setDossier(freshDossier);
+      }
       setActiveTab('explorer');
     } finally {
       setIsTracing(false);
@@ -42,10 +59,19 @@ export default function Home() {
   };
 
   const handleSelectComplaint = async (complaint: Complaint) => {
+    setSelectedComplaint(complaint);
     setIsTracing(true);
     try {
       const res = await apiClient.getTrace(complaint.suspectAddress, complaint.chain);
       setTraceData(res);
+      const freshDossier = await apiClient.compileDossier(
+        res.traceId,
+        complaint.acknowledgementNo,
+        res
+      );
+      if (freshDossier) {
+        setDossier(freshDossier);
+      }
       setActiveTab('explorer');
     } finally {
       setIsTracing(false);
@@ -57,6 +83,19 @@ export default function Home() {
     try {
       const res = await apiClient.getTrace(address);
       setTraceData(res);
+      const matching = complaints.find(
+        (c) => c.suspectAddress.toLowerCase() === address.toLowerCase()
+      );
+      setSelectedComplaint(matching || null);
+      const caseRef = matching ? matching.acknowledgementNo : `NCRP-${address.slice(2, 8).toUpperCase()}-TRACE`;
+      const freshDossier = await apiClient.compileDossier(
+        res.traceId,
+        caseRef,
+        res
+      );
+      if (freshDossier) {
+        setDossier(freshDossier);
+      }
       setActiveTab('explorer');
     } finally {
       setIsTracing(false);
@@ -65,9 +104,11 @@ export default function Home() {
 
   const handleGenerateDossier = async () => {
     if (traceData) {
+      const caseRef = selectedComplaint?.acknowledgementNo || `NCRP-${traceData.traceId.slice(-6).toUpperCase()}`;
       const freshDossier = await apiClient.compileDossier(
         traceData.traceId,
-        `NCRP-${traceData.traceId.slice(-6).toUpperCase()}`
+        caseRef,
+        traceData
       );
       if (freshDossier) {
         setDossier(freshDossier);

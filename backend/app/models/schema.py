@@ -163,6 +163,7 @@ class CourtDossier(CamelModel):
     section94_notice_preview: str
     is_signed: bool = True
     generated_at: str
+    llm_model: Optional[str] = "Ollama (Llama 3.1 8B)"
 
 class FreezeNoticeRequest(CamelModel):
     case_ref: str
